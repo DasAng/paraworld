@@ -1,0 +1,20 @@
+from distutils.core import setup
+
+setup(name="paraworld",
+      packages=["conclave"],
+      version="0.0.1",
+      description="A BDD framework for concurrent tests",
+      long_description="A BDD framework for concurrent tests",
+      author="DasAng",
+      author_email="",
+      url="https://github.com/DasAng/paraworld",
+      license="GPL",
+      download_url="http://pypi.python.org/pypi/paraworld",
+      keywords=["gherkin", "parallel", "bdd"],
+      scripts=[],
+      classifiers=["Programming Language :: Python",
+                   "Programming Language :: Python :: 3",
+                   ],
+      platforms = ['any'],
+      install_requires=['gherkin-official==22.0.0']
+      )

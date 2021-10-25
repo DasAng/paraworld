@@ -1,7 +1,16 @@
+from dataclasses import dataclass
 from typing import Any, Callable, Optional
+import time
+import traceback
 import functools
 import re
 from .step_definition import StepDefinition
+
+@dataclass
+class StepResult:
+    elapsed: float
+    result: Any
+    error: str
 
 class Step:
 
@@ -22,7 +31,16 @@ class Step:
         
         @functools.wraps(func)
         def wrapper_func(*args,**kwargs):
-            return func(*args,**kwargs)
+            start = time.time()
+            result,exc,elapsed = None,None,0.0
+            try:
+                result = func(*args,**kwargs)
+            except Exception:
+                exc = traceback.format_exc()
+            finally:
+                end = time.time()
+                elapsed = end-start 
+                return StepResult(elapsed,result,exc)
         Step.stepDefinitions.append(StepDefinition(self.pattern,wrapper_func))
         return wrapper_func
     

@@ -1,5 +1,10 @@
 from concurrent.futures import ThreadPoolExecutor, wait
 import concurrent
+import json
+from typing import Any, Callable
+
+from conclave.scenario_result import ScenarioResult
+
 from .task_logger import TaskLogger
 import traceback
 import time
@@ -25,6 +30,7 @@ class Scenario:
         self.world = World()
         self.pool = ThreadPoolExecutor()
         self.stepsError = {}
+        self.result = ScenarioResult(scenario=self.gherkinScenario,id=self.id,steps=self.steps)
 
     def run(self):
         """
@@ -35,7 +41,7 @@ class Scenario:
         self.logger.log(f"process pid: {my_pid}")
         self.logger.log(f"thread id: {threading.get_ident()}")
         start = time.time()
-        exc, message, id, elapsed = None,None,None,None
+        exc = None
         try:
             self.__runSteps()
             if self.stepsError:
@@ -52,8 +58,11 @@ class Scenario:
             elapsed = end-start
             self.logger.log(f"elapsed time: {end-start}")
             message = self.logger.msg
-            id = self.id
-            return exc,message,id,elapsed
+            self.result.message = message
+            self.result.exception = exc
+            self.result.elapsed = elapsed
+            return self.result
+
     
     def msg(self):
         return self.logger.msg
@@ -99,19 +108,39 @@ class Scenario:
             consteps = self.__getAllConcurrentSteps()
             seqsteps = self.__getAllSequentialSteps()
 
+            for step in self.steps:
+                self.__updateStep(step, "skipped", None, 0.0)
+
             if len(consteps) > 0:
                 workerThread = threading.Thread(target=self.runWorkerThread,kwargs={'taskList':consteps})
                 workerThread.start()
 
             for step in seqsteps:
+                exc = None
                 self.logger.log(f"execute step: {step['keyword']} {step['text']}")
                 func = Step.getStep(step['text'])
                 if func:
-                    func(self.logger,self.world)
+                    result = func(self.logger,self.world)
+                    if result.error:
+                        self.__updateStep(step, "failed", result.error, result.elapsed)
+                        raise Exception(result.error)
+                    else:
+                        self.__updateStep(step, "success", None, result.elapsed)
+                else:
+                    self.__updateStep(step, "failed", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0)
+                    raise Exception(f"Could not find matching step definition for: {step['keyword']}{step['text']}")
+                    
         finally:
             if workerThread is not None:
                 workerThread.join()
     
+    def __updateStep(self, step: Any, status: str, error: str, elapsed: float):
+        item = next((x for x in self.steps if x['id'] == step['id']), None)
+        if item:
+            item["status"] = status
+            step["error"] = error
+            step["elapsed"] = elapsed
+
     def __getAllConcurrentSteps(self):
         """
         Retrieve all steps marked to be run concurrently
@@ -130,10 +159,8 @@ class Scenario:
             func = Step.getStep(step['text'])
             if func:
                 futures[self.pool.submit(func, self.logger, self.world)] = step
-        #     if task.isConcurrent:
-        #         futures[self.pool.submit(task.scenario.run)] = task
-        #     elif task.isParallel:
-        #         futures[self.parallelPool.submit(task.scenario.run)] = task
+            else:
+                self.__updateStep(step, "failed", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0)
         
         self.logger.log(f"add steps for concurrent executions: {[t['keyword']+t['text'] for t in futures.values()]}")
 
@@ -142,11 +169,13 @@ class Scenario:
             done, _ = wait(futures,return_when=concurrent.futures.FIRST_COMPLETED)
             for c in done:
                 fut = futures.pop(c)
-                try:
-                    c.result()
-                except Exception:
-                    self.stepsError[fut["keyword"]+fut["text"]] = {traceback.format_exc()}
-                    self.logger.error(f"failed: {traceback.format_exc()}")
+                result = c.result()
+                if result.error:
+                    self.stepsError[fut["keyword"]+fut["text"]] = result.error
+                    self.logger.error(f"failed: {result.error}")
+                    self.__updateStep(fut,"failed",result.error,result.elapsed)
+                else:
+                    self.__updateStep(fut,"success",None,result.elapsed)
                 
                 self.logger.log(f"completed step: {fut['keyword']} {fut['text']}")
     

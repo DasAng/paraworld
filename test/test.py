@@ -9,6 +9,12 @@ import multiprocessing
 
 from conclave.task_runner import TaskRunner
 
+@Step(pattern="^con 1$")
+def func1(logger, world: World):
+    logger.log(f"func1 called")
+    #time.sleep(5)
+    raise Exception("Setup exc")
+
 if __name__ == '__main__':
     program_start = time.time()
     print(f"cpu count: {multiprocessing.cpu_count()}")

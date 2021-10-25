@@ -129,14 +129,14 @@ class TaskRunner:
             self.__print(f"check pending task: {task.name}")
             if len(task.depends) > 0:
                 if not set(task.depends).issubset(self.allTaskIds):
-                    self.__addTaskToReport(task, "skipped", None, 0.0)
+                    self.__addTaskToReport(task, "skipped", None, 0.0, None)
                     skipped_tasks.append(task)
                     self.completedTasks.append(task.id)
                     continue
                 if not set(task.depends).issubset(self.completedTasks):
                     continue
                 if self.__isParentTaskFailed(task.depends) and not task.runAlways:
-                    self.__addTaskToReport(task, "skipped", None, 0.0)
+                    self.__addTaskToReport(task, "skipped", None, 0.0, None)
                     self.__print(f"skip task: {task.name}")
                     skipped_tasks.append(task)
                     self.completedTasks.append(task.id)
@@ -149,14 +149,14 @@ class TaskRunner:
                         combine_groups += self.groups[g]
                 if not bool(combine_groups):
                     self.__print(f"no groups matching found task: {task.name}")
-                    self.__addTaskToReport(task, "skipped", None, 0.0)
+                    self.__addTaskToReport(task, "skipped", None, 0.0, None)
                     skipped_tasks.append(task)
                     self.completedTasks.append(task.id)
                     continue
                 if not set(combine_groups).issubset(self.completedTasks):
                     continue
                 if self.__isParentTaskFailed(combine_groups) and not task.runAlways:
-                    self.__addTaskToReport(task, "skipped", None, 0.0)
+                    self.__addTaskToReport(task, "skipped", None, 0.0, None)
                     self.__print(f"dependent tasks failed so skip task: {task.name}")
                     skipped_tasks.append(task)
                     self.completedTasks.append(task.id)
@@ -189,14 +189,15 @@ class TaskRunner:
             done, _ = wait(futures,return_when=concurrent.futures.FIRST_COMPLETED)
             for c in done:
                 fut = futures.pop(c)
-                exc,message,id,elapsed = c.result()
-                print(message)
+                # exc,message,id,elapsed = c.result()
+                result = c.result()
+                print(result.message)
                 self.__print(f"task completed: {fut.name}")
                 self.completedTasks.append(id)
-                if exc is not None:
-                    self.__addTaskToReport(fut,"failed",exc,elapsed)
+                if result.exception is not None:
+                    self.__addTaskToReport(fut,"failed",result.exception,result.elapsed, result)
                 else:
-                    self.__addTaskToReport(fut,"success",exc,elapsed)
+                    self.__addTaskToReport(fut,"success",result.exception,result.elapsed, result)
                 next_tasks,taskList = self.__getNextTask(taskList)
                 if next_tasks is not None:
                     for t in next_tasks:
@@ -218,8 +219,24 @@ class TaskRunner:
                 else:
                     print(f"\tScenario: {t['name']}: {bcolors.FAIL}{t['status']}{bcolors.ENDC} (elapsed {t['elapsed']})")
                 
-                if t['error'] is not None:
-                    print(f"\t\tError: {bcolors.FAIL}{t['error']}{bcolors.ENDC}")
+                # if t['error'] is not None:
+                #     print(f"\t\tError: {bcolors.FAIL}{t['error']}{bcolors.ENDC}")
+                
+                #print(f"all steps report: {t['scenario'].steps}")
+                if 'scenario' in t:
+                    if t['scenario'].steps:
+                        for step in t["scenario"].steps:
+                            status = step['status']
+                            if status == 'failed':
+                                print(f"\t  Step: {step['keyword']}{step['text']}{bcolors.FAIL} {step['status']}{bcolors.ENDC} (elapsed {step['elapsed']})")
+                            elif status == 'skipped':
+                                print(f"\t  Step: {step['keyword']}{step['text']}{bcolors.WARNING} {step['status']}{bcolors.ENDC} (elapsed {step['elapsed']})")
+                            else:
+                                print(f"\t  Step: {step['keyword']}{step['text']}{bcolors.OKGREEN} {step['status']}{bcolors.ENDC} (elapsed {step['elapsed']})")
+                            if "error" in step and step['error'] is not None:
+                                print(f"\t\t{bcolors.FAIL}{step['error']}{bcolors.ENDC}")
+
+                    
     
     def __print(self,msg: str):
         if self.debugMode:
@@ -234,9 +251,9 @@ class TaskRunner:
                     ptask.append(t)
         return any(y['status'] == "failed" or y['status'] == "skipped" for y in ptask)
     
-    def __addTaskToReport(self, task: Task, status: str, error: str, elapsed: float):
+    def __addTaskToReport(self, task: Task, status: str, error: str, elapsed: float, scenarioResult: Any):
         if not any(task.name == x["name"] for x in self.taskReport):
-            self.taskReport.append({"name":task.name,"status":status,"error":error, "elapsed": elapsed, "id": task.id, "feature": task.feature["name"]})
+            self.taskReport.append({"name":task.name,"status":status,"error":error, "elapsed": elapsed, "id": task.id, "feature": task.feature["name"], "task": task, "scenario": scenarioResult})
 
     def __runMainTasks(self):
         return self.__runTasks(self.mainTasks)
@@ -260,14 +277,15 @@ class TaskRunner:
         errorFound = False
         for task in seqtasks:
             if errorFound and not task.runAlways:
-                self.__addTaskToReport(task, "skipped", None, 0.0)
+                self.__addTaskToReport(task, "skipped", None, 0.0, None)
                 self.__print(f"skipped task: {task.name}")
                 continue
-            exc,message,id,elapsed = task.scenario.run()
-            print(message)
+            #exc,message,id,elapsed = task.scenario.run()
+            result = task.scenario.run()
+            print(result.message)
             self.__print(f"task completed: {task.name}")
-            self.__addTaskToReport(task, "failed" if exc is not None else "success", exc, elapsed)
-            if exc is not None:
+            self.__addTaskToReport(task, "failed" if result.exception is not None else "success", result.exception, result.elapsed, result)
+            if result.exception is not None:
                 errorFound = True
         
         workerThread.join()

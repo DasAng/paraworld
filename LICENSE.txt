@@ -1,4 +1,4 @@
-GNU General Public License (GPL)
+MIT License (MIT)
 
 Copyright (c) DasAng
 

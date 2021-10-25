@@ -1,3 +1,64 @@
+# Paraworld
+
+This is a BDD framework using the Gherkin language to define tests. The framework is written in Python 3.9.
+
+It can run scenarios sequentially, in parallel or concurrently or in any combination.
+It also supports running steps concurrently using the custom keyword *concurrent* instead of *Given and Then*
+
+# Usage
+
+To use the framework install it through pip:
+
+```shell
+pip install paraworld
+```
+
+Below is an example code using paraworld to run a sample feature file:
+
+```python
+import time
+import sys
+import os
+from conclave.task_runner import TaskRunner
+from conclave.step import Step
+from conclave.world import World
+import multiprocessing
+from conclave.task_runner import TaskRunner
+
+## define a step matching the word: "This is a test step"
+@Step(pattern="^This is a test step$")
+def testStep(logger, world: World):
+    logger.log(f"test step called")
+    world.setProp("testValue",["hello"])
+    logger.log(f"world object ab: {world.getProp('testValue')}")
+
+if __name__ == '__main__':
+    program_start = time.time()
+    tr = TaskRunner(debugMode=True)
+    error = tr.run(["concurrent.feature"])
+
+    program_end = time.time()
+    print("\nprogram elapsed time :", program_end-program_start)
+
+    if error:
+        print(f"Test failed")
+        sys.exit(1)
+```
+
+And the feature file looks like this:
+
+```feature
+Feature: Test feature
+
+    Feature Description
+
+    @concurrent
+    Scenario: scenario 1
+        Then This is a test step
+```
+
+The above code will run the scenario *scenario 1* concurrently, due to tag *@concurrent*
+
 # How to build
 
 To test the build locally create a virtual environment:

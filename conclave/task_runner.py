@@ -189,7 +189,6 @@ class TaskRunner:
             done, _ = wait(futures,return_when=concurrent.futures.FIRST_COMPLETED)
             for c in done:
                 fut = futures.pop(c)
-                # exc,message,id,elapsed = c.result()
                 result = c.result()
                 print(result.message)
                 self.__print(f"task completed: {fut.name}")
@@ -280,7 +279,6 @@ class TaskRunner:
                 self.__addTaskToReport(task, "skipped", None, 0.0, None)
                 self.__print(f"skipped task: {task.name}")
                 continue
-            #exc,message,id,elapsed = task.scenario.run()
             result = task.scenario.run()
             print(result.message)
             self.__print(f"task completed: {task.name}")

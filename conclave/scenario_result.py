@@ -9,3 +9,7 @@ class ScenarioResult:
     message: str = None
     elapsed: float = 0.0
     exception: str = None
+    threadId: int = None
+    pid: int = None
+    startTime: Any = None
+    endTime: Any = None

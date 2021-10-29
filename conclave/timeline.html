@@ -1,0 +1,124 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Timeline</title>
+
+  <style type="text/css">
+    body, html {
+      font-family: sans-serif;
+    }
+  </style>
+
+  <script>
+    {{ js }}
+  </script>
+ 
+  <style>
+    {{ css }}
+  </style>
+
+  <style>
+     .vis-item .vis-item-overflow {
+      overflow: visible;
+    }
+    .vis-item.vis-background.negative {
+      background-color: rgba(167, 204, 65, 0.2);
+    }
+    table {
+        border: 1px solid gray;
+      }
+
+      td {
+        text-align: center;
+      }
+      
+  </style>
+
+</head>
+<body>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Option</th>
+        <th>Status</th>
+        <th>Toggle</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>sg_1 visibility</td>
+        <td id="subgVissg_1">true</td>
+        <td><button onclick="toggleSubgroupVisibility('sg_1')">Toggle</button></td>
+      </tr>
+      <tr>
+        <td>sg_2 visibility</td>
+        <td id="subgVissg_2">true</td>
+        <td><button onclick="toggleSubgroupVisibility('sg_2')">Toggle</button></td>
+      </tr>
+      <tr>
+        <td>sg_3 visibility</td>
+        <td id="subgVissg_3">true</td>
+        <td><button onclick="toggleSubgroupVisibility('sg_3')">Toggle</button></td>
+      </tr>
+    </tbody>
+  </table>
+  <br />
+
+<div id="visualization"></div>
+<br />
+<br />
+<div id="processvisualization"></div>
+
+<script type="text/javascript">
+  var container = document.getElementById('visualization');
+  var plistcontainer = document.getElementById('processvisualization');
+
+  var items = new vis.DataSet(
+    {{ items }}
+  );
+
+  var steps = {{ steps }}
+
+  var scenarios = {{ scenarios }}
+
+  var groups = {{ groups }}
+
+  // Configuration for the Timeline
+  var options = {
+      //timeAxis: {scale: 'minute', step: 1}
+      showCurrentTime: false,
+      zoomMin: 1000 * 60,
+      zoomMax: 1000 * 60 * 60 * 1,
+      tooltip: {
+      template: function(originalItemData, parsedItemData) {
+        return `<div>elapsed: ${steps[parsedItemData.id].elapsed.toFixed(2)} (s)</div><div>pid: ${steps[parsedItemData.id].pid}</div><div>thread: ${steps[parsedItemData.id].threadId}</div>`
+      }
+    }
+  };
+  
+  // Create a Timeline
+  var timeline = new vis.Timeline(container, items, groups, options);
+
+  timeline.on('select', function (properties) {
+      console.log(JSON.stringify(properties));
+      if (properties.items && properties.items.length == 1) {
+        console.log(steps[properties.items[0]])
+      }
+  });
+
+  var plistOption = {
+      showCurrentTime: false,
+      zoomMin: 1000 * 60,
+      zoomMax: 1000 * 60 * 60 * 1
+  }
+
+  var plistItems = {{ plistItems }}
+
+  var plistGroups = {{ plistGroups }}
+
+  var plistTimeline = new vis.Timeline(plistcontainer, plistItems, plistGroups, plistOption);
+
+</script>
+</body>
+</html>

@@ -4,6 +4,9 @@ import time
 import traceback
 import functools
 import re
+import os
+import threading
+from datetime import datetime
 from .step_definition import StepDefinition
 
 @dataclass
@@ -11,6 +14,10 @@ class StepResult:
     elapsed: float
     result: Any
     error: str
+    threadId: int
+    pid: int
+    start: Any
+    end: Any
 
 class Step:
 
@@ -32,6 +39,8 @@ class Step:
         @functools.wraps(func)
         def wrapper_func(*args,**kwargs):
             start = time.time()
+            pid = os.getpid()
+            threadId = threading.get_ident()
             result,exc,elapsed = None,None,0.0
             try:
                 result = func(*args,**kwargs)
@@ -40,7 +49,7 @@ class Step:
             finally:
                 end = time.time()
                 elapsed = end-start 
-                return StepResult(elapsed,result,exc)
+                return StepResult(elapsed,result,exc,threadId,pid,datetime.fromtimestamp(start),datetime.fromtimestamp(end))
         Step.stepDefinitions.append(StepDefinition(self.pattern,wrapper_func))
         return wrapper_func
     

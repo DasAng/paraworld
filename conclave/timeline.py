@@ -55,6 +55,57 @@ class Timeline:
         #print(f"all thread ids: {threadIds}")
         return pgroups,pitems
 
+    def __createFeatureItem(self,id):
+        item = {
+            "id": id,
+            "content": id,
+            "nestedGroups":  [],
+            "treeLevel": 1
+        }
+        return item
+    
+    def __createScenarioItem(self, id, name, elapsed):
+        content = f"<h4>{name}</h4><div><i>elapsed:{round(elapsed,2)} (s)</i></div>"
+        item = {
+            "id" : id,
+            "content": content
+        }
+        return item
+    
+    def __createScenarioBackgroundItem(self, id, startTime, endTime):
+        item = {
+            "id": id,
+            "content": "",
+            "group": id,
+            "start": startTime.strftime("%m/%d/%Y, %H:%M:%S"),
+            "end": endTime.strftime("%m/%d/%Y, %H:%M:%S"),
+            "type": "background",
+            "className": "negative",
+        }
+        return item
+
+    def __createStepItem(self,itemId, groupId,step):
+        item = {
+            "id": itemId,
+            "content": f"{step['keyword']}{step['text']}",
+            "group": groupId,
+            "start": step["start"].strftime("%m/%d/%Y, %H:%M:%S"),
+            "end": step["end"].strftime("%m/%d/%Y, %H:%M:%S"),
+            "type": "range",
+            "title": step["elapsed"]
+        }
+        return item
+    
+
+    def __getTemplatePropertyContent(self, fileName: str):
+        curdir = os.path.dirname(__file__)
+        with open(os.path.join(curdir,fileName), "r", encoding='utf8') as fh:
+            return fh.read()
+    
+    def __writeTemplateContent(self, fileName: str, content: str):
+        with open(fileName, "w", encoding='utf8') as fh:
+            fh.write(content)
+
     def generateTimeline(self, taskReport: Any):
         print(f"Generate timeline...")
 
@@ -63,45 +114,26 @@ class Timeline:
         allSteps = {}
         allScenarios = {}
         for key, group in groupby(sorted(taskReport,key=lambda x:x["feature"]), lambda x: x["feature"]):
-            feature = {
-                "id": key,
-                "content": key,
-                "nestedGroups":  [],
-                "treeLevel": 1
-            }
-            #print(f"timeline: {feature}")
+            feature = self.__createFeatureItem(key)
+            
             groups.append(feature)
 
             for t in group:
                 feature["nestedGroups"].append(t["id"])
                 scenarioResult: ScenarioResult = t["scenario"]
-                groupContent = f"<h4>{t['name']}</h4><div><i>elapsed:{round(scenarioResult.elapsed,2)} (s)</i></div>"
-                groups.append({
-                    "id" : t["id"],
-                    "content": groupContent
-                })
-                items.append({
-                    "id": t["id"],
-                    "content": "",
-                    "group": t["id"],
-                    "start": scenarioResult.startTime.strftime("%m/%d/%Y, %H:%M:%S"),
-                    "end": scenarioResult.endTime.strftime("%m/%d/%Y, %H:%M:%S"),
-                    "type": "background",
-                    "className": "negative",
-                })
+                scenarioItem = self.__createScenarioItem(t["id"], t["name"], scenarioResult.elapsed)
+                groups.append(scenarioItem)
+
+                scenarioBackgroundItem = self.__createScenarioBackgroundItem(t["id"], scenarioResult.startTime, scenarioResult.endTime)
+
+                items.append(scenarioBackgroundItem)
+
                 for step in scenarioResult.steps:
                     if "start" in step and step["start"]:
-                        id = uuid.uuid4().hex
-                        items.append({
-                        "id": id,
-                        "content": f"{step['keyword']}{step['text']}",
-                        "group": t["id"],
-                        "start": step["start"].strftime("%m/%d/%Y, %H:%M:%S"),
-                        "end": step["end"].strftime("%m/%d/%Y, %H:%M:%S"),
-                        "type": "range",
-                        "title": step["elapsed"]
-                        })
-                        allSteps[id] = step
+                        itemId = uuid.uuid4().hex
+                        stepItem = self.__createStepItem(itemId,t["id"], step)
+                        items.append(stepItem)
+                        allSteps[itemId] = step
 
                 dict_filter = lambda x, y: dict([ (i,x[i]) for i in x if i in set(y) ])
                 allScenarios[t["id"]] = dict_filter(vars(scenarioResult), ("elapsed","pid","threadId","startTime", "endTime",))
@@ -117,15 +149,12 @@ class Timeline:
 
         pgroups,pitems = self.__getAllPids(taskReport)
 
-        curdir = os.path.dirname(__file__)
-        cssContent = ""
-        jsContent = ""
-        with open(os.path.join(curdir,'vis-timeline-graph2d.min.css'), "r", encoding='utf8') as fh:
-            cssContent = fh.read()
-        with open(os.path.join(curdir,'vis-timeline-graph2d.min.js'), "r", encoding='utf8') as fh:
-            jsContent = fh.read()
+
+        cssContent = self.__getTemplatePropertyContent('vis-timeline-graph2d.min.css')
+        jsContent = self.__getTemplatePropertyContent('vis-timeline-graph2d.min.js')
+
         template = self.templateEnv.get_template("timeline.html")
-        str = template.render(groups=json.dumps(groups),
+        output = template.render(groups=json.dumps(groups),
         css=cssContent,
         js=jsContent,
         items=json.dumps(items),
@@ -134,6 +163,6 @@ class Timeline:
         plistGroups=json.dumps(pgroups, default=datetimeConverter),
         plistItems=json.dumps(pitems, default=datetimeConverter)
         )
-        with open("timeline_output.html", "w", encoding='utf8') as fh:
-            fh.write(str)
+
+        self.__writeTemplateContent("timeline_output.html",output)
         

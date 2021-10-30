@@ -92,7 +92,8 @@ class Timeline:
             "start": step["start"].strftime("%m/%d/%Y, %H:%M:%S"),
             "end": step["end"].strftime("%m/%d/%Y, %H:%M:%S"),
             "type": "range",
-            "title": step["elapsed"]
+            "title": step["elapsed"],
+            "className": "red" if step["error"] is not None else "default"
         }
         return item
     

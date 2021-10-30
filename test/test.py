@@ -18,7 +18,8 @@ def func1(logger, world: World):
 @Step(pattern="^con 2$")
 def func2(logger, world: World):
     logger.log(f"func1 called")
-    #time.sleep(10)
+    time.sleep(2)
+    raise Exception("func1 exc")
 
 if __name__ == '__main__':
     program_start = time.time()

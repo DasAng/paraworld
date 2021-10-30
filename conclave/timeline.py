@@ -84,16 +84,21 @@ class Timeline:
         }
         return item
 
-    def __createStepItem(self,itemId, groupId,step):
+    def __createStepItem(self,itemId, groupId,step, scenarioStartTime):
+        className = "default"
+        if step["error"] is not None:
+            className = "red"
+        elif step["status"] == "skipped":
+            className = "orange"
         item = {
             "id": itemId,
             "content": f"{step['keyword']}{step['text']}",
             "group": groupId,
-            "start": step["start"].strftime("%m/%d/%Y, %H:%M:%S"),
-            "end": step["end"].strftime("%m/%d/%Y, %H:%M:%S"),
+            "start": step["start"].strftime("%m/%d/%Y, %H:%M:%S") if step["start"] is not None else scenarioStartTime.strftime("%m/%d/%Y, %H:%M:%S"),
+            "end": step["end"].strftime("%m/%d/%Y, %H:%M:%S") if step["end"] is not None else scenarioStartTime.strftime("%m/%d/%Y, %H:%M:%S"),
             "type": "range",
             "title": step["elapsed"],
-            "className": "red" if step["error"] is not None else "default"
+            "className": className
         }
         return item
     
@@ -130,11 +135,11 @@ class Timeline:
                 items.append(scenarioBackgroundItem)
 
                 for step in scenarioResult.steps:
-                    if "start" in step and step["start"]:
-                        itemId = uuid.uuid4().hex
-                        stepItem = self.__createStepItem(itemId,t["id"], step)
-                        items.append(stepItem)
-                        allSteps[itemId] = step
+                    itemId = uuid.uuid4().hex
+                    stepItem = self.__createStepItem(itemId,t["id"], step, scenarioResult.startTime)
+                    items.append(stepItem)
+                    allSteps[itemId] = step
+                        
 
                 dict_filter = lambda x, y: dict([ (i,x[i]) for i in x if i in set(y) ])
                 allScenarios[t["id"]] = dict_filter(vars(scenarioResult), ("elapsed","pid","threadId","startTime", "endTime",))

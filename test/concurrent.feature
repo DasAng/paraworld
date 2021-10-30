@@ -8,6 +8,7 @@ Feature: Test feature
     @parallel
     Scenario: scenario 1
         Then step 1
+        Then step 2
         Concurrent con 1
         Concurrent con 2
     

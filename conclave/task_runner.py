@@ -1,6 +1,8 @@
 from typing import Any, Optional
 from gherkin.token_scanner import TokenScanner
 from gherkin.parser import Parser
+
+from conclave.timeline import Timeline
 from .task import Task
 import threading
 import concurrent
@@ -221,7 +223,7 @@ class TaskRunner:
                 # if t['error'] is not None:
                 #     print(f"\t\tError: {bcolors.FAIL}{t['error']}{bcolors.ENDC}")
                 
-                #print(f"all steps report: {t['scenario'].steps}")
+                #print(f"all steps report: {t['scenario']}")
                 if 'scenario' in t:
                     if t['scenario'].steps:
                         for step in t["scenario"].steps:
@@ -292,4 +294,10 @@ class TaskRunner:
             error = True
         
         return error
+    
+
+    def generateTimeline(self):
+        timeline = Timeline()
+        timeline.generateTimeline(self.taskReport)
+    
 

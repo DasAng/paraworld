@@ -1,0 +1,161 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Timeline</title>
+
+  <style type="text/css">
+    body, html {
+      font-family: sans-serif;
+    }
+  </style>
+
+  <script>
+    {{ js }}
+  </script>
+ 
+  <style>
+    {{ css }}
+  </style>
+
+  <style>
+     .vis-item .vis-item-overflow {
+      overflow: visible;
+    }
+    .vis-item.vis-background.negative {
+      background-color: rgba(167, 204, 65, 0.2);
+    }
+    .vis-item.vis-range.red {
+      background-color: red;
+      border-color: darkred;
+    }
+    .vis-item.vis-range.orange {
+      background-color: orange;
+      border-color: darkorange;
+    }
+    table {
+        border: 1px solid gray;
+      }
+
+      td {
+        text-align: center;
+      }
+      
+  </style>
+
+</head>
+<body>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Selected step info</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align:left"><b>Step name:</b></td>
+        <td style="text-align:right" id="info_step_name"></td>
+      </tr>
+      <tr>
+        <td style="text-align:left"><b>Status:</b></td>
+        <td style="text-align:right" id="info_step_status"></td>
+      </tr>
+      <tr>
+        <td style="text-align:left"><b>Elapsed:</b></td>
+        <td style="text-align:right" id="info_step_elapsed"></td>
+      </tr>
+      <tr>
+        <td style="text-align:left"><b>Pid:</b></td>
+        <td style="text-align:right" id="info_step_pid"></td>
+      </tr>
+      <tr>
+        <td style="text-align:left"><b>Thread Id:</b></td>
+        <td style="text-align:right" id="info_step_threadid"></td>
+      </tr>
+      <tr>
+        <td style="text-align:left"><b>Error:</b></td>
+        <td style="text-align:right"><textarea style="display:none" readonly id="info_step_error"></textarea></td>
+      </tr>
+    </tbody>
+  </table>
+  <br />
+
+<div id="visualization"></div>
+<br />
+<br />
+<div id="processvisualization"></div>
+
+<script type="text/javascript">
+  var container = document.getElementById('visualization');
+  var plistcontainer = document.getElementById('processvisualization');
+
+  var items = new vis.DataSet(
+    {{ items }}
+  );
+
+  var steps = {{ steps }}
+
+  var scenarios = {{ scenarios }}
+
+  var groups = {{ groups }}
+
+  // Configuration for the Timeline
+  var options = {
+      //timeAxis: {scale: 'minute', step: 1}
+      showCurrentTime: false,
+      zoomMin: 1000 * 60,
+      zoomMax: 1000 * 60 * 60 * 1,
+      tooltip: {
+      template: function(originalItemData, parsedItemData) {
+        return `<div>elapsed: ${steps[parsedItemData.id].elapsed.toFixed(2)} (s)</div><div>pid: ${steps[parsedItemData.id].pid}</div><div>thread: ${steps[parsedItemData.id].threadId}</div>`
+      }
+    }
+  };
+  
+  // Create a Timeline
+  var timeline = new vis.Timeline(container, items, groups, options);
+
+  timeline.on('select', function (properties) {
+      console.log(properties)
+      //console.log(JSON.stringify(properties));
+      if (properties.items && properties.items.length == 1) {
+        step = steps[properties.items[0]];
+        document.getElementById("info_step_name").textContent=`${step.keyword} ${step.text}`;
+        document.getElementById("info_step_status").textContent=`${step.status}`;
+        document.getElementById("info_step_elapsed").textContent=`${step.elapsed.toFixed(2)} (s)`;
+        document.getElementById("info_step_pid").textContent=`${step.pid}`;
+        document.getElementById("info_step_threadid").textContent=`${step.threadId}`;
+        if(step.error) {
+          document.getElementById("info_step_error").style.display = "block";
+          document.getElementById("info_step_error").textContent=`${step.error}`;
+        } else {
+          document.getElementById("info_step_error").style.display = "none";
+        }
+        
+        console.log(steps[properties.items[0]])
+      } else {
+        document.getElementById("info_step_name").textContent=``;
+        document.getElementById("info_step_status").textContent=``;
+        document.getElementById("info_step_error").textContent=``;
+        document.getElementById("info_step_elapsed").textContent=``;
+        document.getElementById("info_step_pid").textContent=``;
+        document.getElementById("info_step_threadid").textContent=``;
+        document.getElementById("info_step_error").style.display = "none";
+      }
+  });
+
+  var plistOption = {
+      showCurrentTime: false,
+      zoomMin: 1000 * 60,
+      zoomMax: 1000 * 60 * 60 * 1
+  }
+
+  var plistItems = {{ plistItems }}
+
+  var plistGroups = {{ plistGroups }}
+
+  var plistTimeline = new vis.Timeline(plistcontainer, plistItems, plistGroups, plistOption);
+
+</script>
+</body>
+</html>

@@ -224,7 +224,7 @@ class TaskRunner:
                 #     print(f"\t\tError: {bcolors.FAIL}{t['error']}{bcolors.ENDC}")
                 
                 #print(f"all steps report: {t['scenario']}")
-                if 'scenario' in t:
+                if 'scenario' in t and t["scenario"] is not None:
                     if t['scenario'].steps:
                         for step in t["scenario"].steps:
                             status = step['status']

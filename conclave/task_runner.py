@@ -299,4 +299,5 @@ class TaskRunner:
     def generateTimeline(self):
         timeline = Timeline()
         timeline.generateTimeline(self.taskReport)
+    
 

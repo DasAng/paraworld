@@ -1,5 +1,9 @@
 paraworld-env
+paraworld-env-linux
 test-env
+timeline_output.html
+monitor_output.html
+monitor.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

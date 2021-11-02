@@ -5,7 +5,6 @@ import os
 import uuid
 import datetime
 from jinja2 import Environment, FileSystemLoader
-
 from conclave.scenario_result import ScenarioResult
 
 
@@ -171,4 +170,3 @@ class Timeline:
         )
 
         self.__writeTemplateContent("timeline_output.html",output)
-        

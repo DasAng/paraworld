@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Monitor</title>
+
+  <style type="text/css">
+    body, html {
+      font-family: sans-serif;
+    }
+
+    .flex-container {
+      display: flex;
+      flex-direction: row;
+
+      justify-content: space-around;
+      flex-wrap: wrap;
+    }
+
+    .flex-item {
+      flex-grow: 1;
+      min-width: 800px;
+    }
+  </style>
+
+  <script>
+    {{ js }}
+  </script>
+ 
+  <style>
+    {{ css }}
+  </style>
+
+
+</head>
+<body>
+  
+<div class="flex-container">
+{% for id in pids %}
+<div>
+<h4>Process Id {{id}}</h4>
+<div class="flex-item" id="visualization_{{id}}"></div>
+</div>
+<br />
+<br />
+{% endfor %}
+</div>
+
+<script type="text/javascript">
+
+  var options = {
+      showCurrentTime: false,
+      zoomMin: 1000 * 60,
+      zoomMax: 1000 * 60 * 60 * 1,
+      legend: {
+        enabled: true
+      },
+      defaultGroup: '',
+      dataAxis: {
+        left: {
+          range: {
+            min: 0,
+            max: 100
+          }
+        }
+      }
+  }
+  var allItems = {{allItems}}
+
+  {% for id in pids %}
+  var container_{{id}} = document.getElementById('visualization_{{id}}');
+  var items_{{id}} = allItems.filter(x => x.pid == {{id}})
+  var dataset_{{id}} = new vis.DataSet(items_{{id}});
+  var graph_{{id}} = new vis.Graph2d(container_{{id}}, dataset_{{id}}, options);
+  {% endfor %}
+
+</script>
+</body>
+</html>

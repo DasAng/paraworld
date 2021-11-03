@@ -14,6 +14,7 @@ import multiprocessing
 from gherkin.token_matcher import TokenMatcher
 from gherkin.dialect import Dialect
 from .custom_keywords import concurrent_keywords, match_stepline
+import uuid
 
 Dialect.concurrent_keywords = concurrent_keywords
 TokenMatcher.match_StepLine = match_stepline
@@ -71,7 +72,7 @@ class TaskRunner:
     
     def __getScenario(self, scenario: Any, feature: Any) -> Task:
         tags = scenario["tags"]
-        isConcurrent,id,depends,dependsGroups,group,runAlways,isSetup,isTeardown,isParallel = False,scenario["name"],[],[],None,False,False,False,False
+        isConcurrent,id,depends,dependsGroups,group,runAlways,isSetup,isTeardown,isParallel = False,uuid.uuid4().hex,[],[],None,False,False,False,False
         for tag in tags:
             tg = tag["name"]
             if temp := self.__getConcurrentTag(tg): isConcurrent = temp
@@ -126,10 +127,11 @@ class TaskRunner:
     def __getNextTask(self,taskList) -> list[Task]:
         new_tasks: list[Task] = []
         skipped_tasks: list[Task] = []
-        self.__print(f"tasks pending: {[t.name for t in taskList]}")
+        self.__print(f"tasks pending: {[(f'name: {t.name}',f'id:{t.id}') for t in taskList]}")
         for task in taskList:
-            self.__print(f"check pending task: {task.name}")
+            self.__print(f"check pending task: (name:{task.name},id:{task.id})")
             if len(task.depends) > 0:
+                self.__print(f"task (name:{task.name},id:{task.id}) depends on: {task.depends}")
                 if not set(task.depends).issubset(self.allTaskIds):
                     self.__addTaskToReport(task, "skipped", None, 0.0, None)
                     skipped_tasks.append(task)
@@ -139,18 +141,18 @@ class TaskRunner:
                     continue
                 if self.__isParentTaskFailed(task.depends) and not task.runAlways:
                     self.__addTaskToReport(task, "skipped", None, 0.0, None)
-                    self.__print(f"skip task: {task.name}")
+                    self.__print(f"skip task: (name:{task.name},id:{task.id})")
                     skipped_tasks.append(task)
                     self.completedTasks.append(task.id)
                     continue
             if len(task.dependsGroups) > 0:
-                self.__print(f"task {task.name} depends on groups: {task.dependsGroups}")
+                self.__print(f"task (name:{task.name},id:{task.id}) depends on groups: {task.dependsGroups}")
                 combine_groups = []
                 for g in task.dependsGroups:
                     if g in self.groups:
                         combine_groups += self.groups[g]
                 if not bool(combine_groups):
-                    self.__print(f"no groups matching found task: {task.name}")
+                    self.__print(f"no groups matching found for task: (name:{task.name},id:{task.id})")
                     self.__addTaskToReport(task, "skipped", None, 0.0, None)
                     skipped_tasks.append(task)
                     self.completedTasks.append(task.id)
@@ -159,7 +161,7 @@ class TaskRunner:
                     continue
                 if self.__isParentTaskFailed(combine_groups) and not task.runAlways:
                     self.__addTaskToReport(task, "skipped", None, 0.0, None)
-                    self.__print(f"dependent tasks failed so skip task: {task.name}")
+                    self.__print(f"dependent tasks failed so skip task: (name:{task.name},id:{task.id})")
                     skipped_tasks.append(task)
                     self.completedTasks.append(task.id)
                     continue
@@ -172,10 +174,6 @@ class TaskRunner:
 
     def runWorkerThread(self, taskList):
         tasks_to_submit, taskList = self.__getNextTask(taskList)
-        # futures = {
-        #     self.pool.submit(task.scenario.run): task
-        #     for task in tasks_to_submit
-        # }
         futures = {}
         for task in tasks_to_submit:
             if task.isConcurrent:
@@ -184,8 +182,8 @@ class TaskRunner:
                 futures[self.parallelPool.submit(task.scenario.run)] = task
         
         
-        self.__print(f"adding new tasks: {[t.name for t in tasks_to_submit]}")
-        self.__print(f"tasks in pool: {[t.name for t in futures.values()]}")
+        self.__print(f"adding new tasks: {[(f'name: {t.name}',f'id:{t.id}') for t in tasks_to_submit]}")
+        self.__print(f"tasks in pool: {[(f'name: {t.name}',f'id:{t.id}') for t in futures.values()]}")
 
         while futures:
             done, _ = wait(futures,return_when=concurrent.futures.FIRST_COMPLETED)
@@ -193,8 +191,8 @@ class TaskRunner:
                 fut = futures.pop(c)
                 result = c.result()
                 print(result.message)
-                self.__print(f"task completed: {fut.name}")
-                self.completedTasks.append(id)
+                self.__print(f"task completed: (name:{fut.name},id:{result.id})")
+                self.completedTasks.append(result.id)
                 if result.exception is not None:
                     self.__addTaskToReport(fut,"failed",result.exception,result.elapsed, result)
                 else:
@@ -202,10 +200,10 @@ class TaskRunner:
                 next_tasks,taskList = self.__getNextTask(taskList)
                 if next_tasks is not None:
                     for t in next_tasks:
-                        self.__print(f"adding new task {t.name}")
+                        self.__print(f"adding new task (name:{t.name},id:{t.id})")
                         item = self.pool.submit(t.scenario.run)
                         futures[item] = t
-                self.__print(f"remaining tasks in pool: {[t.name for t in futures.values()]}")
+                self.__print(f"remaining tasks in pool: {[(f'name: {t.name}',f'id:{t.id}') for t in futures.values()]}")
     
     def __printTestReport(self):
         print(f"Test report:\n")
@@ -265,28 +263,37 @@ class TaskRunner:
     def __runTeardownTasks(self):
         return self.__runTasks(self.teardownTasks)
     
+    def __transformSeqTasks(self, taskList: list[Task]):
+        dependTaskId = None
+        for t in taskList:
+            t.isConcurrent = True
+            if dependTaskId is not None and len(t.depends) <= 0 and len(t.dependsGroups) <= 0:
+                t.depends.append(dependTaskId)
+            dependTaskId = t.id
+        return taskList
+
     def __runTasks(self, taskList):
         error = False
         seqtasks = list(filter(lambda x: not x.isConcurrent and not x.isParallel, taskList))
-        contasks = list(filter(lambda x: x.isConcurrent or x.isParallel, taskList))
-        self.__print(f"sequential tasks: {[t.name for t in seqtasks]}")
-        self.__print(f"concurrent tasks: {[t.name for t in contasks]}")
+        seqtasks = self.__transformSeqTasks(seqtasks)
+        contasks = list(filter(lambda x: x.isConcurrent or x.isParallel, seqtasks))
+        self.__print(f"all tasks: {[t.name for t in contasks]}")
 
         workerThread = threading.Thread(target=self.runWorkerThread,kwargs={'taskList':contasks})
         workerThread.start()
 
-        errorFound = False
-        for task in seqtasks:
-            if errorFound and not task.runAlways:
-                self.__addTaskToReport(task, "skipped", None, 0.0, None)
-                self.__print(f"skipped task: {task.name}")
-                continue
-            result = task.scenario.run()
-            print(result.message)
-            self.__print(f"task completed: {task.name}")
-            self.__addTaskToReport(task, "failed" if result.exception is not None else "success", result.exception, result.elapsed, result)
-            if result.exception is not None:
-                errorFound = True
+        # errorFound = False
+        # for task in seqtasks:
+        #     if errorFound and not task.runAlways:
+        #         self.__addTaskToReport(task, "skipped", None, 0.0, None)
+        #         self.__print(f"skipped task: {task.name}")
+        #         continue
+        #     result = task.scenario.run()
+        #     print(result.message)
+        #     self.__print(f"task completed: {task.name}")
+        #     self.__addTaskToReport(task, "failed" if result.exception is not None else "success", result.exception, result.elapsed, result)
+        #     if result.exception is not None:
+        #         errorFound = True
         
         workerThread.join()
 

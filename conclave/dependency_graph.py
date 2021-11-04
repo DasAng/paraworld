@@ -19,6 +19,34 @@ class DependencyGraph:
             fh.write(content)
 
     def __buildDependencyGraph(self, taskReport: Any, groups: Any):
+        # graph=""
+        # for key, group in groupby(sorted(taskReport,key=lambda x:x["feature"]), lambda x: x["feature"]):
+        #     keyId = uuid.uuid4().hex
+        #     groupList = list(group)
+        #     graph += f"subgraph {keyId}[{key}]\n"
+        #     for k,v in groups.items():
+        #         if any(x["task"].group == k for x in groupList):
+        #             graph += f"subgraph {keyId}_{k}[{k}]\n"
+        #             for node in v:
+        #                 print(f"check node {node}")
+        #                 for t in groupList:
+        #                     print(f"loop through group, item: {t['task']}")
+        #                     if t["task"].id == node:
+        #                         graph += f"{node}\n"
+        #                         break
+        #             graph += f"end\n"
+        #     for t in groupList:
+        #         task: Task = t["task"]
+        #         if task.depends is not None:
+        #             for dp in task.depends:
+        #                 graph += f"{dp}-->{task.id}[{task.name}]\n"
+        #         if task.dependsGroups is not None:
+        #             for dp in task.dependsGroups:
+        #                 graph += f"{keyId}_{dp}-->{task.id}[{task.name}]\n"
+        #         graph += f"{task.id}[{task.name}]\n"
+        #     graph += f"end\n"
+        # return graph
+
         graph = ""
         for k,v in groups.items():
             graph += f"subgraph {k}\n"

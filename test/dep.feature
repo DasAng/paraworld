@@ -12,3 +12,6 @@ Feature: Dependency feature
     @dependsGroups_first
     Scenario: scenario 3
         Then step 1
+    
+    Scenario: scenario 4
+        Then step 1

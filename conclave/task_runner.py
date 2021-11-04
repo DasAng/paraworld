@@ -14,6 +14,7 @@ import multiprocessing
 from gherkin.token_matcher import TokenMatcher
 from gherkin.dialect import Dialect
 from .custom_keywords import concurrent_keywords, match_stepline
+from .dependency_graph import DependencyGraph
 import uuid
 
 Dialect.concurrent_keywords = concurrent_keywords
@@ -306,5 +307,9 @@ class TaskRunner:
     def generateTimeline(self):
         timeline = Timeline()
         timeline.generateTimeline(self.taskReport)
+    
+    def generateDependencyGraph(self):
+        depGraph = DependencyGraph()
+        depGraph.generateGraph("dependency_output.html",self.taskReport,self.groups)
     
 

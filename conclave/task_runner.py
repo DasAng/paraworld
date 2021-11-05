@@ -277,24 +277,12 @@ class TaskRunner:
         error = False
         seqtasks = list(filter(lambda x: not x.isConcurrent and not x.isParallel, taskList))
         seqtasks = self.__transformSeqTasks(seqtasks)
-        contasks = list(filter(lambda x: x.isConcurrent or x.isParallel, seqtasks))
-        self.__print(f"all tasks: {[t.name for t in contasks]}")
+        contasks = list(filter(lambda x: x.isConcurrent or x.isParallel, taskList))
+        alltasks = contasks + seqtasks
+        self.__print(f"all tasks: {[t.name for t in alltasks]}")
 
-        workerThread = threading.Thread(target=self.runWorkerThread,kwargs={'taskList':contasks})
+        workerThread = threading.Thread(target=self.runWorkerThread,kwargs={'taskList':alltasks})
         workerThread.start()
-
-        # errorFound = False
-        # for task in seqtasks:
-        #     if errorFound and not task.runAlways:
-        #         self.__addTaskToReport(task, "skipped", None, 0.0, None)
-        #         self.__print(f"skipped task: {task.name}")
-        #         continue
-        #     result = task.scenario.run()
-        #     print(result.message)
-        #     self.__print(f"task completed: {task.name}")
-        #     self.__addTaskToReport(task, "failed" if result.exception is not None else "success", result.exception, result.elapsed, result)
-        #     if result.exception is not None:
-        #         errorFound = True
         
         workerThread.join()
 

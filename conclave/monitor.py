@@ -117,7 +117,7 @@ class Monitor:
             parsedItem = json.loads(item)
         
         pids = list(dict.fromkeys(pids))
-        print(f"all pids: {pids}")
+        #print(f"all pids: {pids}")
 
         #print(f"all itens: {allItems}")
 

@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(name="paraworld",
       packages=["conclave"],
-      version="0.0.6",
+      version="0.0.7",
       description="A BDD framework for concurrent tests",
       long_description="A BDD framework for concurrent tests",
       author="DasAng",
@@ -16,5 +16,6 @@ setup(name="paraworld",
                    "Programming Language :: Python :: 3",
                    ],
       platforms = ['any'],
-      install_requires=['gherkin-official==22.0.0', 'jinja2==3.0.2','psutil==5.8.0','requests==2.26.0']
+      install_requires=['gherkin-official==22.0.0', 'jinja2==3.0.2','psutil==5.8.0','requests==2.26.0'],
+      include_package_data=True
       )

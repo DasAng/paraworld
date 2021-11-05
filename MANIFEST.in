@@ -1,0 +1,3 @@
+include conclave/*.html
+include conclave/*.css
+include conclave/*.js

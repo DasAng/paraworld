@@ -1,0 +1,21 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+</head>
+<body>
+  <div class="mermaid">
+    flowchart LR
+    {{ graph }}
+  </div>
+  <script>
+    {{ js }}
+  </script>
+  <script>
+      var config = {
+    startOnLoad:true,
+
+    securityLevel:'loose',
+  };
+    mermaid.initialize(config);</script>
+</body>
+</html>

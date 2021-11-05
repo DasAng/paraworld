@@ -276,8 +276,8 @@ class TaskRunner:
     def __runTasks(self, taskList):
         error = False
         seqtasks = list(filter(lambda x: not x.isConcurrent and not x.isParallel, taskList))
-        seqtasks = self.__transformSeqTasks(seqtasks)
         contasks = list(filter(lambda x: x.isConcurrent or x.isParallel, taskList))
+        seqtasks = self.__transformSeqTasks(seqtasks)
         alltasks = contasks + seqtasks
         self.__print(f"all tasks: {[t.name for t in alltasks]}")
 

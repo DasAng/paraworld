@@ -1,14 +1,16 @@
 import time
 import sys
 import os
+from typing import Match
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 from conclave.task_runner import TaskRunner
 from conclave.step import Step
 from conclave.world import World
 from conclave.task_runner import TaskRunner
+from conclave.task_logger import TaskLogger
 
 @Step(pattern="^step 1$")
-def func1(logger, world: World):
+def func1(logger: TaskLogger, world: World,match: Match[str]):
     logger.log(f"func1 called")
 
 if __name__ == '__main__':

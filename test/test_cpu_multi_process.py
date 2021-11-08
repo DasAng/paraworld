@@ -1,6 +1,7 @@
 import time
 import sys
 import os
+from typing import Match
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 from conclave.task_runner import TaskRunner
 from conclave.step import Step
@@ -8,9 +9,10 @@ from conclave.world import World
 import multiprocessing
 from conclave.monitor import Monitor
 from conclave.task_runner import TaskRunner
+from conclave.task_logger import TaskLogger
 
 @Step(pattern="^calculate pi$")
-def calcPi(logger, world: World):
+def calcPi(logger: TaskLogger, world: World, match: Match[str]):
     logger.log(f"calcPi called")
     pi = 0
     accuracy = 100000

@@ -1,6 +1,7 @@
 import time
 import sys
 import os
+from typing import Match
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 from conclave.task_runner import TaskRunner
 from conclave.step import Step
@@ -8,10 +9,11 @@ from conclave.world import World
 import multiprocessing
 from conclave.monitor import Monitor
 from conclave.task_runner import TaskRunner
+from conclave.task_logger import TaskLogger
 import requests
 
 @Step(pattern="^call api$")
-def callApi(logger, world: World):
+def callApi(logger: TaskLogger, world: World,match: Match[str]):
     logger.log(f"callApi called")
     x = requests.get('https://httpbin.org/delay/2')
     logger.log(f"response: {x}")

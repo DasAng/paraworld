@@ -1,6 +1,7 @@
 import time
 import sys
 import os
+from typing import Match
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 from conclave.task_runner import TaskRunner
 from conclave.step import Step
@@ -8,10 +9,11 @@ from conclave.world import World
 import multiprocessing
 from conclave.monitor import Monitor
 from conclave.task_runner import TaskRunner
+from conclave.task_logger import TaskLogger
 import requests
 
 @Step(pattern="^con 1$")
-def func1(logger, world: World):
+def func1(logger: TaskLogger, world: World,match: Match[str]):
     logger.log(f"func1 called")
     pi = 0
     accuracy = 100000
@@ -24,7 +26,7 @@ def func1(logger, world: World):
     #raise Exception("Setup exc")
 
 @Step(pattern="^con 2$")
-def func2(logger, world: World):
+def func2(logger: TaskLogger, world: World,match: Match[str]):
     logger.log(f"func1 called")
     x = requests.get('https://httpbin.org/delay/2')
     logger.log(f"response: {x}")

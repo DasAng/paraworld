@@ -58,5 +58,5 @@ class Step:
         for step in Step.stepDefinitions:
             result = re.search(step.pattern,text)
             if result:
-                return step.func
+                return step.func,result
         return None

@@ -122,9 +122,9 @@ class Scenario:
             for step in seqsteps:
                 exc = None
                 self.logger.log(f"execute step: {step['keyword']} {step['text']}")
-                func = Step.getStep(step['text'])
+                func,match = Step.getStep(step['text'])
                 if func:
-                    result = func(self.logger,self.world)
+                    result = func(self.logger,self.world,match)
                     if result.error:
                         self.__updateStep(step, "failed", result.error, result.elapsed, result.pid,result.threadId,result.start,result.end)
                         raise Exception(result.error)
@@ -164,9 +164,9 @@ class Scenario:
     def runWorkerThread(self, taskList):
         futures = {}
         for step in taskList:
-            func = Step.getStep(step['text'])
+            func,match = Step.getStep(step['text'])
             if func:
-                futures[self.pool.submit(func, self.logger, self.world)] = step
+                futures[self.pool.submit(func, self.logger, self.world,match)] = step
             else:
                 self.__updateStep(step, "failed", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None)
         

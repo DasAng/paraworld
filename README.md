@@ -121,3 +121,19 @@ Now lets test the installed package, by running the test file **test_local_build
 cd test
 python test_local_build.py
 ```
+
+# Publish to TestPyPI
+
+Before publishing to PyPI you can upload to TestPyPI for testing the package:
+
+```shell
+twine upload --repository testpypi dist/*
+``` 
+
+This will upload whatever is in the **dist** folder to TestPyPI.
+
+To test out the newly published package:
+
+```shell
+python -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ paraworld
+```

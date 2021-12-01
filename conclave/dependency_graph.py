@@ -2,22 +2,15 @@ import os
 from typing import Any
 from jinja2 import Environment, FileSystemLoader
 
+from .template_base import TemplateBase
+
 from .task import Task
 
-class DependencyGraph:
+class DependencyGraph(TemplateBase):
 
     def __init__(self) -> None:
         pass
-
-    def __getTemplatePropertyContent(self, fileName: str):
-        curdir = os.path.dirname(__file__)
-        with open(os.path.join(curdir,fileName), "r", encoding='utf8') as fh:
-            return fh.read()
     
-    def __writeTemplateContent(self, fileName: str, content: str):
-        with open(fileName, "w", encoding='utf8') as fh:
-            fh.write(content)
-
     def __buildDependencyGraph(self, taskReport: Any, groups: Any):
         graph = ""
         for k,v in groups.items():
@@ -40,7 +33,7 @@ class DependencyGraph:
     def generateGraph(self, fileName: str, taskReport: Any, groups: Any):
         templateFileName = "dependency.html"
         env = Environment(loader=FileSystemLoader(os.path.dirname(__file__)))
-        jsContent = self.__getTemplatePropertyContent('mermaid.min.js')
+        jsContent = self.getTemplatePropertyContent('mermaid.min.js')
         template = env.get_template(templateFileName)
         graph = self.__buildDependencyGraph(taskReport,groups)
 
@@ -49,5 +42,5 @@ class DependencyGraph:
             graph=graph
         )
 
-        self.__writeTemplateContent(fileName,output)
+        self.writeTemplateContent(fileName,output)
 

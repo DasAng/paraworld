@@ -2,7 +2,7 @@ from typing import Any, Optional
 from gherkin.token_scanner import TokenScanner
 from gherkin.parser import Parser
 
-from conclave.timeline import Timeline
+from .timeline import Timeline
 from .task import Task
 import threading
 import concurrent
@@ -43,7 +43,7 @@ class TaskRunner:
         error = self.__runSetupTasks()
 
         if not error:
-            ## run sequential tasks
+            ## run main tasks
             self.__runMainTasks()
 
         ## run any teardown tasks
@@ -252,7 +252,7 @@ class TaskRunner:
         return any(y['status'] == "failed" or y['status'] == "skipped" for y in ptask)
     
     def __addTaskToReport(self, task: Task, status: str, error: str, elapsed: float, scenarioResult: Any):
-        if not any(task.name == x["name"] for x in self.taskReport):
+        if not any(task.name == x["name"] and task.feature["name"] == x["feature"] for x in self.taskReport):
             self.taskReport.append({"name":task.name,"status":status,"error":error, "elapsed": elapsed, "id": task.id, "feature": task.feature["name"], "task": task, "scenario": scenarioResult})
 
     def __runMainTasks(self):

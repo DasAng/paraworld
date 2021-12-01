@@ -7,6 +7,8 @@ import re
 import os
 import threading
 from datetime import datetime
+
+from .task_logger import TaskLogger
 from .step_definition import StepDefinition
 
 @dataclass
@@ -18,6 +20,7 @@ class StepResult:
     pid: int
     start: Any
     end: Any
+    log: str
 
 class Step:
 
@@ -42,14 +45,20 @@ class Step:
             pid = os.getpid()
             threadId = threading.get_ident()
             result,exc,elapsed = None,None,0.0
+            logger = TaskLogger(f"{args[0].funcName}/{func.__name__}")
+            parentLogger = args[0]
+            newargs = list(args)
+            newargs[0] = logger
+            args2 = tuple(newargs)
             try:
-                result = func(*args,**kwargs)
+                result = func(*args2,**kwargs)
             except Exception:
                 exc = traceback.format_exc()
             finally:
                 end = time.time()
-                elapsed = end-start 
-                return StepResult(elapsed,result,exc,threadId,pid,datetime.fromtimestamp(start),datetime.fromtimestamp(end))
+                elapsed = end-start
+                parentLogger.msg += logger.msg
+                return StepResult(elapsed,result,exc,threadId,pid,datetime.fromtimestamp(start),datetime.fromtimestamp(end),logger.msg)
         Step.stepDefinitions.append(StepDefinition(self.pattern,wrapper_func))
         return wrapper_func
     
@@ -59,4 +68,4 @@ class Step:
             result = re.search(step.pattern,text)
             if result:
                 return step.func,result
-        return None
+        return None,None

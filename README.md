@@ -74,6 +74,16 @@ If not already installed then install the build package:
 python -m pip install --upgrade build
 ```
 
+Build the report first by doing the following:
+
+*Window*:
+
+```shell
+cd report
+npm run build_window
+cd ..
+```
+
 Then run the build command
 
 ```shell

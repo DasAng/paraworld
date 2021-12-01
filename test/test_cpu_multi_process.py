@@ -10,6 +10,7 @@ import multiprocessing
 from conclave.monitor import Monitor
 from conclave.task_runner import TaskRunner
 from conclave.task_logger import TaskLogger
+from conclave.report import Report
 
 @Step(pattern="^calculate pi$")
 def calcPi(logger: TaskLogger, world: World, match: Match[str]):
@@ -25,6 +26,7 @@ def calcPi(logger: TaskLogger, world: World, match: Match[str]):
 if __name__ == '__main__':
     program_start = time.time()
     mon = Monitor()
+    report = Report()
     print(f"cpu count: {multiprocessing.cpu_count()}")
     my_pid = os.getpid()
     #mon.startMonitor()
@@ -39,6 +41,7 @@ if __name__ == '__main__':
     #mon.generateReport()
 
     tr.generateTimeline()
+    report.generateReport(tr.taskReport)
 
     if error:
         print(f"Test failed")

@@ -5,10 +5,12 @@ import os
 import uuid
 import datetime
 from jinja2 import Environment, FileSystemLoader
-from conclave.scenario_result import ScenarioResult
+from .scenario_result import ScenarioResult
+from .template_base import TemplateBase
+from .helpers import datetimeConverter
 
 
-class Timeline:
+class Timeline(TemplateBase):
 
     def __init__(self) -> None:
         self.templateEnv = Environment(loader=FileSystemLoader(os.path.dirname(__file__)))
@@ -102,15 +104,6 @@ class Timeline:
         return item
     
 
-    def __getTemplatePropertyContent(self, fileName: str):
-        curdir = os.path.dirname(__file__)
-        with open(os.path.join(curdir,fileName), "r", encoding='utf8') as fh:
-            return fh.read()
-    
-    def __writeTemplateContent(self, fileName: str, content: str):
-        with open(fileName, "w", encoding='utf8') as fh:
-            fh.write(content)
-
     def generateTimeline(self, taskReport: Any):
         print(f"Generate timeline...")
 
@@ -144,19 +137,11 @@ class Timeline:
                 allScenarios[t["id"]] = dict_filter(vars(scenarioResult), ("elapsed","pid","threadId","startTime", "endTime",))
                 
                 
-
-                
-        def datetimeConverter(o):
-            if isinstance(o, datetime.datetime):
-                return o.__str__()
-        
-        
-
         pgroups,pitems = self.__getAllPids(taskReport)
 
 
-        cssContent = self.__getTemplatePropertyContent('vis-timeline-graph2d.min.css')
-        jsContent = self.__getTemplatePropertyContent('vis-timeline-graph2d.min.js')
+        cssContent = self.getTemplatePropertyContent('vis-timeline-graph2d.min.css')
+        jsContent = self.getTemplatePropertyContent('vis-timeline-graph2d.min.js')
 
         template = self.templateEnv.get_template("timeline.html")
         output = template.render(groups=json.dumps(groups),
@@ -169,4 +154,4 @@ class Timeline:
         plistItems=json.dumps(pitems, default=datetimeConverter)
         )
 
-        self.__writeTemplateContent("timeline_output.html",output)
+        self.writeTemplateContent("timeline_output.html",output)

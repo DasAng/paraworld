@@ -7,6 +7,8 @@ import datetime
 import json
 import queue
 from jinja2 import Environment, FileSystemLoader
+from .template_base import TemplateBase
+from .helpers import datetimeConverter
 
 
 def getProcessByName(processName: str) -> list[Process]:
@@ -19,10 +21,6 @@ def getProcessByName(processName: str) -> list[Process]:
 
 def writeDataPoints(data, fileName):
      
-    def datetimeConverter(o):
-        if isinstance(o, datetime.datetime):
-            return o.__str__()
-
     datetimestr = datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
     with open(fileName, 'a+') as f:
         f.write(f"{datetimestr}> {json.dumps(data, default=datetimeConverter)}\n")
@@ -64,12 +62,11 @@ def runMonitor(q: multiprocessing.Queue):
             pass
     
 
-class Monitor:
+class Monitor(TemplateBase):
 
     def __init__(self) -> None:
         self.signalQueue = multiprocessing.Queue()
         self.monitorProcess = Process(daemon=True,target=runMonitor, args=(self.signalQueue,))
-        pass
 
     def startMonitor(self):
         self.monitorProcess.start()
@@ -78,27 +75,17 @@ class Monitor:
         self.signalQueue.put("STOP")
         self.monitorProcess.join()
     
-
-    def __getTemplatePropertyContent(self, fileName: str):
-        curdir = os.path.dirname(__file__)
-        with open(os.path.join(curdir,fileName), "r", encoding='utf8') as fh:
-            return fh.read()
-    
     def __getAllLines(self, fileName: str):
         with open(fileName, "r", encoding='utf8') as fh:
             lines = [line.rstrip() for line in fh]
             return lines
     
-    def __writeTemplateContent(self, fileName: str, content: str):
-        with open(fileName, "w", encoding='utf8') as fh:
-            fh.write(content)
-
     def generateReport(self):
         templateFileName = "monitor.html"
         dataFile = f"monitor.txt"
         env = Environment(loader=FileSystemLoader(os.path.dirname(__file__)))
-        cssContent = self.__getTemplatePropertyContent('vis-timeline-graph2d.min.css')
-        jsContent = self.__getTemplatePropertyContent('vis-timeline-graph2d.min.js')
+        cssContent = self.getTemplatePropertyContent('vis-timeline-graph2d.min.css')
+        jsContent = self.getTemplatePropertyContent('vis-timeline-graph2d.min.js')
         template = env.get_template(templateFileName)
         pids = []
 
@@ -127,7 +114,7 @@ class Monitor:
             js=jsContent,
             allItems=json.dumps(allItems)
         )
-        self.__writeTemplateContent("monitor_output.html",output)
+        self.writeTemplateContent("monitor_output.html",output)
 
 
         

@@ -5,6 +5,9 @@ timeline_output.html
 monitor_output.html
 monitor.txt
 dependency_output.html
+report_output.html
+node_modules
+report/dist
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

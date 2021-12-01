@@ -32,7 +32,7 @@ if __name__ == '__main__':
     #mon.startMonitor()
     print(f"process pid: {my_pid}")
     tr = TaskRunner(debugMode=True)
-    error = tr.run(["cpu_multi_thread.feature"])
+    error = tr.run(["cpu_multi_thread.feature","cpu_multi_process.feature","io_multi_thread.feature"])
 
     program_end = time.time()
     print("\nprogram elapsed time :", program_end-program_start)

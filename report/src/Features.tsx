@@ -25,6 +25,9 @@ const columns : TypeColumn[] = [
       )
     }
   }},
+  { name: "scenarioSuccess", header: "successfull scenarios", minWidth: 100},
+  { name: "scenarioFailed", header: "failed scenarios", minWidth: 100},
+  { name: "scenarioSkipped", header: "skipped scenarios", minWidth: 100}
 ];
 
 const gridStyle = { minHeight: 550 }
@@ -39,7 +42,10 @@ export default function Features(): JSX.Element {
   let id = 0;
   for(const feature of gherkin) {
     id++;
-    rows.push({name: feature.name, status: feature.status})
+    const successScenarioCount = feature.scenarios.filter((x: { status: string; }) => x.status === 'success').length;
+    const failedScenarioCount = feature.scenarios.filter((x: { status: string; }) => x.status === 'failed').length;
+    const skippedScenarioCount = feature.scenarios.filter((x: { status: string; }) => x.status === 'skipped').length;
+    rows.push({name: feature.name, status: feature.status, scenarioSuccess: successScenarioCount, scenarioFailed: failedScenarioCount, scenarioSkipped: skippedScenarioCount})
   }
 
   const onSelectionChange = (config: TypeOnSelectionChangeArg) => {

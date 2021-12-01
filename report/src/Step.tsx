@@ -36,6 +36,10 @@ const useStyles = makeStyles(() => ({
     durationIcon: {
         marginLeft: 'auto',
         order: 2
+    },
+    stepError: {
+        color: red[500],
+        backgroundColor: "#f1f1f1"
     }
 }));
 
@@ -109,6 +113,18 @@ export default function Step(props: {step: any}): JSX.Element {
             )
         }
     }
+
+    const renderError = (error: string) => {
+        if (error) {
+            return (
+                <pre>
+                    <code className={classes.stepError}>
+                        {error}
+                    </code>
+                </pre>
+            )
+        }
+    }
     
     return (
         <div>
@@ -121,6 +137,7 @@ export default function Step(props: {step: any}): JSX.Element {
             {/* {renderArguments()} */}
             {/* <code className={classes.message}>{step.result.message}</code> */}
             <Collapse className={classes.attachment} in={expanded}>
+                {renderError(step.error)}
                 {renderLog(step.log)}
                 {/* <Attachments attachments={step.attachments}></Attachments> */}
             </Collapse>

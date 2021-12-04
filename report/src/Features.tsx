@@ -15,8 +15,8 @@ import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
 import { Tooltip, Typography } from '@mui/material';
 
 const columns : TypeColumn[] = [
-  { name: 'name', header: 'Feature', minWidth: 50, defaultWidth: 200},
-  { name: 'description', header: 'Description', minWidth: 50, defaultWidth: 300,
+  { name: 'name', header: 'Feature', minWidth: 50, defaultWidth: 300},
+  { name: 'description', header: 'Description', minWidth: 50, defaultWidth: 300,defaultFlex: 2,
   render: ({value}) => {
     return (
       <Typography variant="body2" color="textSecondary" component="p" style={{whiteSpace: 'pre-wrap'}}>
@@ -106,6 +106,8 @@ export default function Features(): JSX.Element {
             checkboxColumn={false}
             selected={true}
             onSelectionChange={onSelectionChange}
+            minRowHeight={50}
+            rowHeight={null}
           />
         </div>
           {scenarios.map((sc: any) => {

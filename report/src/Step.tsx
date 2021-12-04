@@ -107,7 +107,7 @@ export default function Step(props: {step: any}): JSX.Element {
                 <TextareaAutosize
                             aria-label="log message"
                             defaultValue={log}
-                            style={{ width: 400, height: 390 }}
+                            style={{ width: 400, height: 390, overflow: "auto" }}
                             readOnly
                             />
             )

@@ -23,9 +23,10 @@ class Timeline(TemplateBase):
         for key, group in groupby(sorted(taskReport,key=lambda x:x["feature"]), lambda x: x["feature"]):
             for t in group:
                 scenarioResult: ScenarioResult = t["scenario"]
-                for step in scenarioResult.steps:
-                    if step["pid"] is not None:
-                        processList.setdefault(step["pid"], []).append(step)
+                if scenarioResult:
+                    for step in scenarioResult.steps:
+                        if step["pid"] is not None:
+                            processList.setdefault(step["pid"], []).append(step)
         
         #print(f"process list: {processList}")
         for key,val in processList.items():
@@ -119,22 +120,23 @@ class Timeline(TemplateBase):
             for t in group:
                 feature["nestedGroups"].append(t["id"])
                 scenarioResult: ScenarioResult = t["scenario"]
-                scenarioItem = self.__createScenarioItem(t["id"], t["name"], scenarioResult.elapsed)
-                groups.append(scenarioItem)
+                if scenarioResult:
+                    scenarioItem = self.__createScenarioItem(t["id"], t["name"], scenarioResult.elapsed)
+                    groups.append(scenarioItem)
 
-                scenarioBackgroundItem = self.__createScenarioBackgroundItem(t["id"], scenarioResult.startTime, scenarioResult.endTime)
+                    scenarioBackgroundItem = self.__createScenarioBackgroundItem(t["id"], scenarioResult.startTime, scenarioResult.endTime)
 
-                items.append(scenarioBackgroundItem)
+                    items.append(scenarioBackgroundItem)
 
-                for step in scenarioResult.steps:
-                    itemId = uuid.uuid4().hex
-                    stepItem = self.__createStepItem(itemId,t["id"], step, scenarioResult.startTime)
-                    items.append(stepItem)
-                    allSteps[itemId] = step
-                        
+                    for step in scenarioResult.steps:
+                        itemId = uuid.uuid4().hex
+                        stepItem = self.__createStepItem(itemId,t["id"], step, scenarioResult.startTime)
+                        items.append(stepItem)
+                        allSteps[itemId] = step
+                            
 
-                dict_filter = lambda x, y: dict([ (i,x[i]) for i in x if i in set(y) ])
-                allScenarios[t["id"]] = dict_filter(vars(scenarioResult), ("elapsed","pid","threadId","startTime", "endTime",))
+                    dict_filter = lambda x, y: dict([ (i,x[i]) for i in x if i in set(y) ])
+                    allScenarios[t["id"]] = dict_filter(vars(scenarioResult), ("elapsed","pid","threadId","startTime", "endTime",))
                 
                 
         pgroups,pitems = self.__getAllPids(taskReport)

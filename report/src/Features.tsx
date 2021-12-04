@@ -10,18 +10,47 @@ import { CreateUUID } from './Utils';
 import { TypeOnSelectionChangeArg } from '@inovua/reactdatagrid-community/types/TypeDataGridProps';
 import { TypeRowSelection } from '@inovua/reactdatagrid-community/types';
 import CancelIcon from '@mui/icons-material/Cancel';
+import WarningIcon from '@mui/icons-material/Warning';
+import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
+import { Tooltip, Typography } from '@mui/material';
 
 const columns : TypeColumn[] = [
-  { name: 'name', header: 'Feature', minWidth: 50, defaultFlex: 2},
-  { name: 'status', header: 'Status', minWidth: 50,
+  { name: 'name', header: 'Feature', minWidth: 50, defaultWidth: 200},
+  { name: 'description', header: 'Description', minWidth: 50, defaultWidth: 300,
+  render: ({value}) => {
+    return (
+      <Typography variant="body2" color="textSecondary" component="p" style={{whiteSpace: 'pre-wrap'}}>
+              {value}
+      </Typography>
+    )
+  }},
+  { name: 'status', header: 'Status', minWidth: 50, headerAlign: 'center',textAlign: 'center',
   render: ({value}) => {
     if (value === 'success') {
       return (
+        <Tooltip title={"Success"}>
         <CheckCircleIcon color={'success'}></CheckCircleIcon>
+        </Tooltip>
+      )
+    }
+    else if (value === 'incomplete') {
+      return (
+        <Tooltip title={"Some scenarios are skipped"}>
+      <PrivacyTipIcon color={'info'}></PrivacyTipIcon>
+      </Tooltip>
+      )
+    }
+    else if (value === 'skipped') {
+      return (
+        <Tooltip title={"No scenarios have been executed"}>
+      <WarningIcon color={'warning'}></WarningIcon>
+      </Tooltip>
       )
     } else {
       return (
+        <Tooltip title={"Failed"}>
         <CancelIcon color={'error'}></CancelIcon>
+        </Tooltip>
       )
     }
   }},
@@ -45,7 +74,7 @@ export default function Features(): JSX.Element {
     const successScenarioCount = feature.scenarios.filter((x: { status: string; }) => x.status === 'success').length;
     const failedScenarioCount = feature.scenarios.filter((x: { status: string; }) => x.status === 'failed').length;
     const skippedScenarioCount = feature.scenarios.filter((x: { status: string; }) => x.status === 'skipped').length;
-    rows.push({name: feature.name, status: feature.status, scenarioSuccess: successScenarioCount, scenarioFailed: failedScenarioCount, scenarioSkipped: skippedScenarioCount})
+    rows.push({name: feature.name, status: feature.status, scenarioSuccess: successScenarioCount, scenarioFailed: failedScenarioCount, scenarioSkipped: skippedScenarioCount, description: feature.description})
   }
 
   const onSelectionChange = (config: TypeOnSelectionChangeArg) => {

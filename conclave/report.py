@@ -34,8 +34,17 @@ class Report(TemplateBase):
                 task: Task = t["task"]
                 scenario: Scenario = task.scenario
                 feature: Any = task.feature
-                scenarios.append({"detail": t['scenario'].scenario, "status": t["status"], "elapsed": t["elapsed"], "error": t["error"]})
-            features.append({"name": key, "status": featureStatus, "scenarios":scenarios})
+                if t['scenario']:
+                    scenarios.append({"detail": t['scenario'].scenario, "status": t["status"], "elapsed": t["elapsed"], "error": t["error"]})
+                else:
+                    scenarios.append({"detail": scenario.gherkinScenario, "status": t["status"], "elapsed": t["elapsed"], "error": t["error"]})
+            features.append({"name": key, "status": featureStatus, "scenarios":scenarios, "description": feature['description']})
+        
+        for feature in features:
+            if all(sc['status'] == 'skipped' for sc in feature['scenarios']):
+                feature['status'] = 'skipped'
+            elif not any(sc['status'] == 'failed' for sc in feature['scenarios']) and any(sc['status'] == 'skipped' for sc in feature['scenarios']):
+                feature['status'] = 'incomplete'
             
         output = template.render(
             js=jsContent,

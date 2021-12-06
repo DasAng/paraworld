@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any*/
 import React from 'react';
 import Features from './Features';
-import {useGlobalContext} from './GlobalContext';
+import { Overview } from './Overview';
 
 
 export const Home = () : JSX.Element => {
 
-    const {gherkin} = useGlobalContext();
-
     return (
         <div>
+            <Overview></Overview>
+            <br></br>
             <Features></Features>
         </div>
     )

@@ -19,23 +19,20 @@ def callApi(logger: TaskLogger, world: World,match: Match[str]):
     logger.log(f"response: {x}")
 
 if __name__ == '__main__':
-    program_start = time.time()
     mon = Monitor()
     print(f"cpu count: {multiprocessing.cpu_count()}")
-    my_pid = os.getpid()
     #mon.startMonitor()
-    print(f"process pid: {my_pid}")
     tr = TaskRunner(debugMode=True)
-    error = tr.run(["io_multi_process.feature"])
+    testResult = tr.run(["io_multi_process.feature"])
 
-    program_end = time.time()
-    print("\nprogram elapsed time :", program_end-program_start)
+    print("\nprogram elapsed time :", testResult.elapsed)
 
     #mon.stopMonitor()
     #mon.generateReport()
 
     tr.generateTimeline()
+    tr.generateReport()
 
-    if error:
+    if not testResult.success:
         print(f"Test failed")
         sys.exit(1)

@@ -4,7 +4,7 @@ import {GlobalProvider} from './GlobalContext';
 import {Home} from './Home';
 
 const App = () => (
-  <GlobalProvider gherkin={window.CUCUMBER_MESSAGES}>
+  <GlobalProvider gherkin={window.CUCUMBER_MESSAGES} testResult={window.TEST_RESULT}>
      <Home></Home>
   </GlobalProvider>
 );

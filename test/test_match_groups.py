@@ -20,16 +20,12 @@ def matchGroup(logger: TaskLogger, world: World,match: Match[str]):
     logger.log(f"match group 2: {group2}")
 
 if __name__ == '__main__':
-    program_start = time.time()
     print(f"cpu count: {multiprocessing.cpu_count()}")
-    my_pid = os.getpid()
-    print(f"process pid: {my_pid}")
     tr = TaskRunner(debugMode=True)
-    error = tr.run(["match_group.feature"])
+    testResult = tr.run(["match_group.feature"])
 
-    program_end = time.time()
-    print("\nprogram elapsed time :", program_end-program_start)
+    print("\nprogram elapsed time :", testResult.elapsed)
 
-    if error:
+    if not testResult.success:
         print(f"Test failed")
         sys.exit(1)

@@ -1,6 +1,12 @@
+import datetime
+import os
 from typing import Any, Optional
 from gherkin.token_scanner import TokenScanner
 from gherkin.parser import Parser
+
+from conclave.report import Report
+
+from .testresult_info import TestResultInfo
 
 from .timeline import Timeline
 from .task import Task
@@ -16,6 +22,7 @@ from gherkin.dialect import Dialect
 from .custom_keywords import concurrent_keywords, match_stepline
 from .dependency_graph import DependencyGraph
 import uuid
+import time
 
 Dialect.concurrent_keywords = concurrent_keywords
 TokenMatcher.match_StepLine = match_stepline
@@ -34,11 +41,15 @@ class TaskRunner:
         self.allTaskIds: list[str] = []
         self.mainTasks: list[Task] = []
         self.debugMode: bool = debugMode
+        self.testResult: TestResultInfo = None
 
-    def run(self, featureFiles: list[str]):
+    def run(self, featureFiles: list[str]) -> TestResultInfo:
         for file in featureFiles:
             self.__parse(file)
         
+        start = time.time()
+        startDate = datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+
         ## run any setup tasks
         error = self.__runSetupTasks()
 
@@ -49,10 +60,21 @@ class TaskRunner:
         ## run any teardown tasks
         error = self.__runTeardownTasks()
 
+        end = time.time()
+        endDate = datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+
         ## print test report
         self.__printTestReport()
 
-        return len(list(filter(lambda x: "failed" in x["status"], self.taskReport))) > 0
+        self.testResult = TestResultInfo(
+            elapsed=end-start,
+            start=startDate,
+            end=endDate,
+            numCpu=multiprocessing.cpu_count(),
+            pid=os.getpid(),
+            success=len(list(filter(lambda x: "failed" in x["status"], self.taskReport))) <= 0
+        )
+        return self.testResult
 
     def __parse(self, featureFile: str):
         result = self.parser.parse(TokenScanner(featureFile))
@@ -299,5 +321,9 @@ class TaskRunner:
     def generateDependencyGraph(self):
         depGraph = DependencyGraph()
         depGraph.generateGraph("dependency_output.html",self.taskReport,self.groups)
+    
+    def generateReport(self):
+        report = Report()
+        report.generateReport(self.taskReport, self.testResult)
     
 

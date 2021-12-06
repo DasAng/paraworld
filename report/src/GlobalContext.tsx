@@ -5,21 +5,23 @@ import React, {createContext, useContext} from 'react';
 declare global {
     interface Window {
       CUCUMBER_MESSAGES:any;
+      TEST_RESULT:any;
     }
 }
 
-const initialState = {gherkin: null};
+const initialState = {gherkin: null, testResult: null};
 
 export const GlobalContext = createContext(initialState);
 
-export const GlobalProvider = (props: { children: any; gherkin: any; }) : JSX.Element => {
-    const { children, gherkin } = props;
+export const GlobalProvider = (props: { children: any; gherkin: any; testResult: any}) : JSX.Element => {
+    const { children, gherkin, testResult } = props;
     
     initialState.gherkin = gherkin;
+    initialState.testResult = testResult;
 
     return (
         <GlobalContext.Provider
-        value={{gherkin}}
+        value={{gherkin, testResult}}
         >
             {children}
         </GlobalContext.Provider>

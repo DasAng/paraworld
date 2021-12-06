@@ -3,7 +3,6 @@ import React from 'react';
 import { makeStyles  } from '@mui/styles';
 import { Box, Collapse, Tooltip, Typography } from '@mui/material';
 import TimerIcon from '@mui/icons-material/Timer';
-import TextareaAutosize from '@mui/material/TextareaAutosize';
 import TerminalTwoToneIcon from '@mui/icons-material/TerminalTwoTone';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -104,12 +103,12 @@ export default function Step(props: {step: any}): JSX.Element {
     const renderLog = (log: string) => {
         if (log) {
             return (
-                <TextareaAutosize
-                            aria-label="log message"
-                            defaultValue={log}
-                            style={{ width: 400, height: 390, overflow: "auto" }}
-                            readOnly
-                            />
+                <textarea
+                    aria-label="log message"
+                    defaultValue={log}
+                    style={{ width: '100%', height: 390, overflow: "auto",display: 'flex', resize: 'none' }}
+                    readOnly
+                    />
             )
         }
     }

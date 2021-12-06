@@ -4,6 +4,8 @@ import json
 from typing import Any
 from jinja2 import Environment,FileSystemLoader
 
+from conclave.testresult_info import TestResultInfo
+
 from .scenario import Scenario
 from .task import Task
 from .scenario_result import ScenarioResult
@@ -16,7 +18,7 @@ class Report(TemplateBase):
     def __init__(self) -> None:
         pass
 
-    def generateReport(self, taskReport: Any):
+    def generateReport(self, taskReport: Any, testResult: TestResultInfo):
         templateFileName = "report.html"
         env = Environment(loader=FileSystemLoader(os.path.dirname(__file__)))
         jsContent = self.getTemplatePropertyContent('report.min.js')
@@ -48,7 +50,8 @@ class Report(TemplateBase):
             
         output = template.render(
             js=jsContent,
-            data=json.dumps(features, default=datetimeConverter)
+            data=json.dumps(features, default=datetimeConverter),
+            testResult=json.dumps(vars(testResult), default=datetimeConverter)
         )
 
         self.writeTemplateContent("report_output.html",output)

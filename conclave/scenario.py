@@ -153,13 +153,13 @@ class Scenario:
         """
         Retrieve all steps marked to be run concurrently
         """
-        return list(filter(lambda x: x["keyword"] == "Concurrent ", self.steps))
+        return list(filter(lambda x: x["keyword"] == "Concurrently ", self.steps))
     
     def __getAllSequentialSteps(self):
         """
         Retrieve all sequential steps
         """
-        return list(filter(lambda x: x["keyword"] != "Concurrent ", self.steps))
+        return list(filter(lambda x: x["keyword"] != "Concurrently ", self.steps))
     
     def runWorkerThread(self, taskList):
         futures = {}

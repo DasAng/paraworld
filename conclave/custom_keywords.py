@@ -1,6 +1,6 @@
 @property
 def concurrent_keywords(self):
-    return ['*','Concurrent ']
+    return ['*','Concurrently ']
 
 def match_stepline(self,token):
     keywords = (self.dialect.given_keywords +

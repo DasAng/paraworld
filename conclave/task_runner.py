@@ -93,6 +93,14 @@ class TaskRunner:
                 sc = child["scenario"]
                 self.__getScenario(sc, feature)
     
+    # def __getFeatureId(self, feature: Any) -> str:
+    #     tags = feature["tags"]
+    #     id=uuid.uuid4().hex()
+    #     for tag in tags:
+    #         tg = tag["name"]
+    #         if temp := self.__getIdTag(tg, tag): id = temp
+    #     return id
+    
     def __getScenario(self, scenario: Any, feature: Any) -> Task:
         tags = scenario["tags"]
         isConcurrent,id,depends,dependsGroups,group,runAlways,isSetup,isTeardown,isParallel = False,uuid.uuid4().hex,[],[],None,False,False,False,False

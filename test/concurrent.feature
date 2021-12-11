@@ -9,8 +9,8 @@ Feature: Test feature
     Scenario: scenario 1
         Then step 1
         Then step 2
-        Concurrent con 1
-        Concurrent con 2
+        Concurrently con 1
+        Concurrently con 2
     
     Scenario: scenario 2
         Then con 1

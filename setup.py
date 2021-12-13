@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(name="paraworld",
       packages=["conclave"],
-      version="0.0.14",
+      version="0.0.15",
       description="A BDD framework for concurrent tests",
       long_description="A BDD framework for concurrent tests",
       author="DasAng",

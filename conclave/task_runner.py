@@ -232,8 +232,12 @@ class TaskRunner:
                 if next_tasks is not None:
                     for t in next_tasks:
                         self.__print(f"adding new task (name:{t.name},id:{t.id})")
-                        item = self.pool.submit(t.scenario.run)
-                        futures[item] = t
+                        if t.isConcurrent:
+                            item = self.pool.submit(t.scenario.run)
+                            futures[item] = t
+                        elif t.isParallel:
+                            item = self.parallelPool.submit(t.scenario.run)
+                            futures[item] = t
                 self.__print(f"remaining tasks in pool: {[(f'name: {t.name}',f'id:{t.id}') for t in futures.values()]}")
     
     def __printTestReport(self):

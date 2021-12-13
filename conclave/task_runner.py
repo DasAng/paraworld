@@ -198,9 +198,9 @@ class TaskRunner:
                     continue
             new_tasks.append(task)
         if len(skipped_tasks) > 0:
-            taskList = [i for i in taskList if not any(x.name == i.name for x in skipped_tasks)]
+            taskList = [i for i in taskList if not any(x.id == i.id for x in skipped_tasks)]
         if len(new_tasks) > 0:
-            taskList = [i for i in taskList if not any(x.name == i.name for x in new_tasks)]
+            taskList = [i for i in taskList if not any(x.id == i.id for x in new_tasks)]
         return new_tasks, taskList
 
     def runWorkerThread(self, taskList):

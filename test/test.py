@@ -45,7 +45,7 @@ if __name__ == '__main__':
     print("\nprogram elapsed time :", testResult.elapsed)
 
     mon.stopMonitor()
-    mon.generateReport()
+    mon.generateReport(tr.taskReport)
 
     tr.generateTimeline()
 

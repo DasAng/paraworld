@@ -1,7 +1,9 @@
 from multiprocessing import Process
+from itertools import groupby
 import multiprocessing
 import os
 import time
+from typing import Any
 import psutil
 import datetime
 import json
@@ -9,6 +11,7 @@ import queue
 from jinja2 import Environment, FileSystemLoader
 from .template_base import TemplateBase
 from .helpers import datetimeConverter
+from .scenario_result import ScenarioResult
 
 
 def getProcessByName(processName: str) -> list[Process]:
@@ -80,13 +83,28 @@ class Monitor(TemplateBase):
             lines = [line.rstrip() for line in fh]
             return lines
     
-    def generateReport(self):
+    def __getAllPids(self, taskReport: Any):
+        pids = []
+        for key, group in groupby(sorted(taskReport,key=lambda x:x["feature"]), lambda x: x["feature"]):
+            for t in group:
+                scenarioResult: ScenarioResult = t["scenario"]
+                if scenarioResult:
+                    for step in scenarioResult.steps:
+                        if step["pid"] is not None:
+                            pids.append(step["pid"])
+        
+        return pids
+
+        
+    def generateReport(self, taskReport: Any):
         templateFileName = "monitor.html"
         dataFile = f"monitor.txt"
         env = Environment(loader=FileSystemLoader(os.path.dirname(__file__)))
         cssContent = self.getTemplatePropertyContent('vis-timeline-graph2d.min.css')
         jsContent = self.getTemplatePropertyContent('vis-timeline-graph2d.min.js')
         template = env.get_template(templateFileName)
+        allPids = self.__getAllPids(taskReport)
+        allPids = list(dict.fromkeys(allPids))
         pids = []
 
         allItems = []
@@ -99,7 +117,8 @@ class Monitor(TemplateBase):
                 p["x"] = date
                 p["y"] = p["cpu"]
                 p["group"] = "cpu time"
-                pids.append(p["pid"])
+                if p["pid"] in allPids:
+                    pids.append(p["pid"])
             allItems += parsedItem
             parsedItem = json.loads(item)
         
@@ -115,6 +134,3 @@ class Monitor(TemplateBase):
             allItems=json.dumps(allItems)
         )
         self.writeTemplateContent("monitor_output.html",output)
-
-
-        

@@ -274,7 +274,7 @@ class TaskRunner:
     
     def __print(self,msg: str):
         if self.debugMode:
-            print(f"{bcolors.OKCYAN}[task_manager] {msg}{bcolors.ENDC}\n")
+            print(f"{bcolors.OKCYAN}[{datetime.datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} task_manager] {msg}{bcolors.ENDC}\n")
     
 
     def __isParentTaskFailed(self, groups):

@@ -134,3 +134,8 @@ class Monitor(TemplateBase):
             allItems=json.dumps(allItems)
         )
         self.writeTemplateContent("monitor_output.html",output)
+        if os.path.exists(dataFile):
+            os.remove(dataFile)
+
+
+        

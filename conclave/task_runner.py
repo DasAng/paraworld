@@ -198,9 +198,9 @@ class TaskRunner:
                     continue
             new_tasks.append(task)
         if len(skipped_tasks) > 0:
-            taskList = [i for i in taskList if not any(x.name == i.name for x in skipped_tasks)]
+            taskList = [i for i in taskList if not any(x.id == i.id for x in skipped_tasks)]
         if len(new_tasks) > 0:
-            taskList = [i for i in taskList if not any(x.name == i.name for x in new_tasks)]
+            taskList = [i for i in taskList if not any(x.id == i.id for x in new_tasks)]
         return new_tasks, taskList
 
     def runWorkerThread(self, taskList):
@@ -232,8 +232,12 @@ class TaskRunner:
                 if next_tasks is not None:
                     for t in next_tasks:
                         self.__print(f"adding new task (name:{t.name},id:{t.id})")
-                        item = self.pool.submit(t.scenario.run)
-                        futures[item] = t
+                        if t.isConcurrent:
+                            item = self.pool.submit(t.scenario.run)
+                            futures[item] = t
+                        elif t.isParallel:
+                            item = self.parallelPool.submit(t.scenario.run)
+                            futures[item] = t
                 self.__print(f"remaining tasks in pool: {[(f'name: {t.name}',f'id:{t.id}') for t in futures.values()]}")
     
     def __printTestReport(self):
@@ -270,7 +274,7 @@ class TaskRunner:
     
     def __print(self,msg: str):
         if self.debugMode:
-            print(f"{bcolors.OKCYAN}[task_manager] {msg}{bcolors.ENDC}\n")
+            print(f"{bcolors.OKCYAN}[{datetime.datetime.now().strftime('%m/%d/%Y, %H:%M:%S')} task_manager] {msg}{bcolors.ENDC}\n")
     
 
     def __isParentTaskFailed(self, groups):

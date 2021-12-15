@@ -66,13 +66,22 @@ class Timeline(TemplateBase):
         }
         return item
     
-    def __createScenarioItem(self, id, name, elapsed):
-        content = f"<h4>{name}</h4><div><i>elapsed:{round(elapsed,2)} (s)</i></div>"
-        item = {
-            "id" : id,
-            "content": content
-        }
-        return item
+    def __createScenarioItem(self, id, name, elapsed, isSkipped):
+        if not isSkipped:
+            content = f"<h4>{name}</h4><div><i>elapsed:{round(elapsed,2)}</i></div>"
+            item = {
+                "id" : id,
+                "content": content
+            }
+            return item
+        else:
+            content = f"<h4>{name}</h4><div><i>elapsed:{round(elapsed,2)} (s)</i></div><div><i>Skipped</i></div>"
+            item = {
+                "id" : id,
+                "content": content,
+                "className": "skipped-scenario"
+            }
+            return item
     
     def __createScenarioBackgroundItem(self, id, startTime, endTime):
         item = {
@@ -121,7 +130,7 @@ class Timeline(TemplateBase):
                 feature["nestedGroups"].append(t["id"])
                 scenarioResult: ScenarioResult = t["scenario"]
                 if scenarioResult:
-                    scenarioItem = self.__createScenarioItem(t["id"], t["name"], scenarioResult.elapsed)
+                    scenarioItem = self.__createScenarioItem(t["id"], t["name"], scenarioResult.elapsed, False)
                     groups.append(scenarioItem)
 
                     scenarioBackgroundItem = self.__createScenarioBackgroundItem(t["id"], scenarioResult.startTime, scenarioResult.endTime)
@@ -137,6 +146,9 @@ class Timeline(TemplateBase):
 
                     dict_filter = lambda x, y: dict([ (i,x[i]) for i in x if i in set(y) ])
                     allScenarios[t["id"]] = dict_filter(vars(scenarioResult), ("elapsed","pid","threadId","startTime", "endTime",))
+                else:
+                    scenarioItem = self.__createScenarioItem(t["id"], t["name"], t["elapsed"], True)
+                    groups.append(scenarioItem)
                 
                 
         pgroups,pitems = self.__getAllPids(taskReport)

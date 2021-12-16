@@ -134,7 +134,7 @@ class TaskRunner:
             if temp := self.__getIdTag(tg, tag): id = temp
             if temp := self.__getDependsTag(tg, tag): depends.append(temp)
             if temp := self.__getDependsGroupsTag(tg, tag): dependsGroups.append(temp)
-            group = self.__getGroupTag(tg, tag)
+            if temp := self.__getGroupTag(tg, tag): group = temp
         sc = Scenario(scenario["name"],scenario,feature,id)
         t = Task(scenario["name"], sc, feature, id,depends,dependsGroups,runAlways,group, isSetup, isConcurrent,isTeardown,isParallel)
         self.allTaskIds.append(t.id)

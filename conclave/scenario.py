@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor, wait
 import concurrent
+import multiprocessing
 from typing import Any
 from datetime import datetime
 from .scenario_result import ScenarioResult
@@ -31,12 +32,14 @@ class Scenario:
         self.stepsError = {}
         self.result = ScenarioResult(scenario=self.gherkinScenario,id=self.id,steps=self.steps,threadId=None,pid=None,startTime=None,endTime=None)
 
-    def run(self):
+    def run(self, queue: multiprocessing.Queue):
         """
         Execute the scenario
         """
         self.logger.log(f"Run scenario: {self.name}")
         my_pid = os.getpid()
+        if queue:
+            queue.put(my_pid)
         self.logger.log(f"process pid: {my_pid}")
         self.logger.log(f"thread id: {threading.get_ident()}")
         start = time.time()

@@ -39,4 +39,4 @@ if __name__ == '__main__':
 
     if not testResult.success:
         print(f"Test failed")
-        sys.exit(1)
+        os._exit(1)

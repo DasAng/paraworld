@@ -23,18 +23,23 @@ from .custom_keywords import concurrent_keywords, match_stepline
 from .dependency_graph import DependencyGraph
 import uuid
 import time
+import signal
+import ctypes
+import atexit
+from .task_monitor import TaskMonitor
 
 Dialect.concurrent_keywords = concurrent_keywords
 TokenMatcher.match_StepLine = match_stepline
 
+#atexit.unregister(concurrent.futures.thread._python_exit)
 class TaskRunner:
 
-    def __init__(self,debugMode=False) -> None:
+    def __init__(self,debugMode=False,timeout=3600) -> None:
         self.parser = Parser()
         self.completedTasks: list[str] = []
         self.groups = {}
         self.pool = ThreadPoolExecutor()
-        self.parallelPool = ProcessPoolExecutor(max_workers=multiprocessing.cpu_count())
+        self.parallelPool = ProcessPoolExecutor(max_workers=multiprocessing.cpu_count(),mp_context=multiprocessing.get_context("spawn"))
         self.taskReport = []
         self.setupTasks: list[Task] = []
         self.teardownTasks: list[Task] = []
@@ -42,6 +47,8 @@ class TaskRunner:
         self.mainTasks: list[Task] = []
         self.debugMode: bool = debugMode
         self.testResult: TestResultInfo = None
+        self.timeout = timeout
+        self.taskMonitor = TaskMonitor()
 
     def run(self, featureFiles: list[str]) -> TestResultInfo:
         for file in featureFiles:
@@ -49,6 +56,8 @@ class TaskRunner:
         
         start = time.time()
         startDate = datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+
+        self.taskMonitor.start()
 
         ## run any setup tasks
         error = self.__runSetupTasks()
@@ -74,6 +83,17 @@ class TaskRunner:
             pid=os.getpid(),
             success=len(list(filter(lambda x: "failed" in x["status"], self.taskReport))) <= 0
         )
+
+        self.taskMonitor.cancel()
+        self.taskMonitor.join()
+        self.taskMonitor.pids = list(dict.fromkeys(self.taskMonitor.pids))
+        self.__print(f"All process ids: {self.taskMonitor.pids}")
+        for pid in self.taskMonitor.pids:
+            os.kill(pid, signal.SIGTERM)
+        #self.pool.shutdown(wait=False)
+        # for t in self.pool._threads:
+        #     self.__terminateThread(t)
+
         return self.testResult
 
     def __parse(self, featureFile: str):
@@ -208,16 +228,26 @@ class TaskRunner:
         futures = {}
         for task in tasks_to_submit:
             if task.isConcurrent:
-                futures[self.pool.submit(task.scenario.run)] = task
+                futures[self.pool.submit(task.scenario.run,queue=None)] = task
             elif task.isParallel:
-                futures[self.parallelPool.submit(task.scenario.run)] = task
+                futures[self.parallelPool.submit(task.scenario.run,queue=self.taskMonitor.signalQueue)] = task
         
         
         self.__print(f"adding new tasks: {[(f'name: {t.name}',f'id:{t.id}') for t in tasks_to_submit]}")
         self.__print(f"tasks in pool: {[(f'name: {t.name}',f'id:{t.id}') for t in futures.values()]}")
 
         while futures:
-            done, _ = wait(futures,return_when=concurrent.futures.FIRST_COMPLETED)
+            startTime = time.time()
+            done, notDone = wait(futures,return_when=concurrent.futures.FIRST_COMPLETED,timeout=self.timeout)
+            endTime = time.time()
+            elapsed = endTime-startTime
+            self.__print(f"elapsed time: {elapsed}")
+            if elapsed >= self.timeout:
+                for c in notDone:
+                    self.__print(f"tasks not done: (name:{futures[c].name},id:{futures[c].id}, running:{c.running()},cancelled:{c.cancelled()})")
+                    self.__addTaskToReport(futures[c],"failed","timeout waiting for task to complete",self.timeout, None)
+                self.__print(f"timeout waiting {self.timeout} (s) for remaining tasks to complete. Aborting.")
+                break
             for c in done:
                 fut = futures.pop(c)
                 result = c.result()
@@ -324,6 +354,21 @@ class TaskRunner:
             error = True
         
         return error
+    
+    def __terminateThread(self,thread):
+        self.__print(f"terminate thread: {thread.ident}")
+        exc = ctypes.py_object(SystemExit)
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
+            ctypes.c_long(thread.ident), exc)
+        if res == 0:
+            self.__print(f"none existent thread id")
+            raise ValueError("nonexistent thread id")
+        elif res > 1:
+            self.__print(f"PyThreadState_SetAsyncExc failed")
+            # """if it returns a number greater than one, you're in trouble,
+            # and you should call it again with exc=NULL to revert the effect"""
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(thread.ident, None)
+            raise SystemError("PyThreadState_SetAsyncExc failed")
     
 
     def generateTimeline(self):

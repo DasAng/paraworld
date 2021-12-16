@@ -87,7 +87,6 @@ class TaskRunner:
         self.taskMonitor.cancel()
         self.taskMonitor.join()
         self.taskMonitor.pids = list(dict.fromkeys(self.taskMonitor.pids))
-        self.__print(f"All process ids: {self.taskMonitor.pids}")
         for pid in self.taskMonitor.pids:
             os.kill(pid, signal.SIGTERM)
         #self.pool.shutdown(wait=False)

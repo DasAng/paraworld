@@ -17,7 +17,7 @@ class TaskMonitor(threading.Thread):
         while not self.cancelled:
             try:
                 msg = self.signalQueue.get(block=False)
-                print(f"task pid: {msg}")
+                #print(f"task pid: {msg}")
                 self.pids.append(msg)
             except queue.Empty:
                 pass

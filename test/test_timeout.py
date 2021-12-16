@@ -10,36 +10,24 @@ import multiprocessing
 from conclave.monitor import Monitor
 from conclave.task_runner import TaskRunner
 from conclave.task_logger import TaskLogger
-from conclave.report import Report
 
-@Step(pattern="^calculate pi$")
-def calcPi(logger: TaskLogger, world: World,match: Match[str]):
-    logger.log(f"calcPi called")
-    pi = 0
-    accuracy = 100000
-
-    for i in range(50):
-        for i in range(0, accuracy):
-            pi += ((4.0 * (-1)**i) / (2*i + 1))
-    logger.log(f"done calc pi")
+@Step(pattern="^run for long time$")
+def longRunningStep(logger: TaskLogger, world: World,match: Match[str]):
+    logger.log(f"long running step")
+    time.sleep(30)
 
 if __name__ == '__main__':
-    mon = Monitor()
     print(f"cpu count: {multiprocessing.cpu_count()}")
     my_pid = os.getpid()
-    #mon.startMonitor()
     print(f"process pid: {my_pid}")
-    tr = TaskRunner(debugMode=True)
-    testResult = tr.run(["cpu_multi_thread.feature"])
+    tr = TaskRunner(debugMode=True,timeout=10)
+    testResult = tr.run(["timeout.feature"])
 
     print("\nprogram elapsed time :", testResult.elapsed)
-
-    #mon.stopMonitor()
-    #mon.generateReport()
-
     tr.generateTimeline()
     tr.generateReport()
 
     if not testResult.success:
         print(f"Test failed")
         os._exit(1)
+            

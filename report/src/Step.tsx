@@ -4,8 +4,8 @@ import { makeStyles  } from '@mui/styles';
 import { Box, Collapse, Tooltip, Typography } from '@mui/material';
 import TimerIcon from '@mui/icons-material/Timer';
 import TerminalTwoToneIcon from '@mui/icons-material/TerminalTwoTone';
-import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import HelpIcon from '@mui/icons-material/Help';
 import { blue, green, orange, red } from '@mui/material/colors';
 import CancelIcon from '@mui/icons-material/Cancel';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
@@ -65,7 +65,7 @@ export default function Step(props: {step: any}): JSX.Element {
             case 'failed':
                 return <Tooltip title="failed"><CancelIcon className={classes.statusIcon} fontSize="small" style={{color: red[500]}}></CancelIcon></Tooltip>
         }
-        return <Tooltip title="undefined"><IndeterminateCheckBoxIcon className={classes.statusIcon} fontSize="small" style={{color: blue[500]}}></IndeterminateCheckBoxIcon></Tooltip>
+        return <Tooltip title="undefined"><HelpIcon className={classes.statusIcon} fontSize="small" style={{color: blue[500]}}></HelpIcon></Tooltip>
     }
 
     const showLogIcon = () => {

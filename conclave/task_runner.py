@@ -24,14 +24,11 @@ from .dependency_graph import DependencyGraph
 import uuid
 import time
 import signal
-import ctypes
-import atexit
 from .task_monitor import TaskMonitor
 
 Dialect.concurrent_keywords = concurrent_keywords
 TokenMatcher.match_StepLine = match_stepline
 
-#atexit.unregister(concurrent.futures.thread._python_exit)
 class TaskRunner:
 
     def __init__(self,debugMode=False,timeout=3600) -> None:
@@ -72,6 +69,16 @@ class TaskRunner:
         end = time.time()
         endDate = datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 
+        self.taskMonitor.cancel()
+        self.taskMonitor.join()
+        self.taskMonitor.pids = list(dict.fromkeys(self.taskMonitor.pids))
+        for pid in self.taskMonitor.pids:
+            self.__print(f"kill process id: {pid}")
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except:
+                pass
+
         ## print test report
         self.__printTestReport()
 
@@ -83,15 +90,6 @@ class TaskRunner:
             pid=os.getpid(),
             success=len(list(filter(lambda x: "failed" in x["status"], self.taskReport))) <= 0
         )
-
-        self.taskMonitor.cancel()
-        self.taskMonitor.join()
-        self.taskMonitor.pids = list(dict.fromkeys(self.taskMonitor.pids))
-        for pid in self.taskMonitor.pids:
-            os.kill(pid, signal.SIGTERM)
-        #self.pool.shutdown(wait=False)
-        # for t in self.pool._threads:
-        #     self.__terminateThread(t)
 
         return self.testResult
 
@@ -235,12 +233,11 @@ class TaskRunner:
         self.__print(f"adding new tasks: {[(f'name: {t.name}',f'id:{t.id}') for t in tasks_to_submit]}")
         self.__print(f"tasks in pool: {[(f'name: {t.name}',f'id:{t.id}') for t in futures.values()]}")
 
+        startTime = time.time()
         while futures:
-            startTime = time.time()
-            done, notDone = wait(futures,return_when=concurrent.futures.FIRST_COMPLETED,timeout=self.timeout)
+            done, notDone = wait(futures,return_when=concurrent.futures.FIRST_COMPLETED,timeout=1)
             endTime = time.time()
             elapsed = endTime-startTime
-            self.__print(f"elapsed time: {elapsed}")
             if elapsed >= self.timeout:
                 for c in notDone:
                     self.__print(f"tasks not done: (name:{futures[c].name},id:{futures[c].id}, running:{c.running()},cancelled:{c.cancelled()})")
@@ -354,22 +351,6 @@ class TaskRunner:
         
         return error
     
-    def __terminateThread(self,thread):
-        self.__print(f"terminate thread: {thread.ident}")
-        exc = ctypes.py_object(SystemExit)
-        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
-            ctypes.c_long(thread.ident), exc)
-        if res == 0:
-            self.__print(f"none existent thread id")
-            raise ValueError("nonexistent thread id")
-        elif res > 1:
-            self.__print(f"PyThreadState_SetAsyncExc failed")
-            # """if it returns a number greater than one, you're in trouble,
-            # and you should call it again with exc=NULL to revert the effect"""
-            ctypes.pythonapi.PyThreadState_SetAsyncExc(thread.ident, None)
-            raise SystemError("PyThreadState_SetAsyncExc failed")
-    
-
     def generateTimeline(self):
         timeline = Timeline()
         timeline.generateTimeline(self.taskReport)

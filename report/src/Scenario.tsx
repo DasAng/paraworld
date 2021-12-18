@@ -37,6 +37,10 @@ const useStyles = makeStyles(() => ({
     smallIcon: {
         position: "relative",
         top: theme.spacing(0.5),
+    },
+    scenarioError: {
+        color: red[500],
+        backgroundColor: "#f1f1f1"
     }
 }));
 
@@ -58,17 +62,6 @@ export default function Scenario(props: {scenario: any}): JSX.Element {
         return classes.ScenarioUndefinedTitle;
     }
 
-    // const renderTags = scenario.detail.tags.map((x: any) => {
-    //     return (
-    //     <React.Fragment key={x.id}>
-    //         <Chip className={classes.scenarioTags}
-    //             label={x.name}
-    //             color="primary"
-    //         />
-    //     </React.Fragment>
-    //     );
-    // });
-
     const renderDescription = (description: string) => {
         if (description) {
             return (
@@ -78,14 +71,6 @@ export default function Scenario(props: {scenario: any}): JSX.Element {
             )
         }
     }
-
-    // const renderSteps = scenario.detail.steps.map((x:any) => {
-    //     return (
-    //         <React.Fragment key={CreateUUID()}>
-    //             <Step step={x}></Step>
-    //         </React.Fragment>
-    //     );
-    // });
 
     const renderDetail = (scenario: any) => {
         return (
@@ -98,6 +83,12 @@ export default function Scenario(props: {scenario: any}): JSX.Element {
                             </TableRow>
                         </TableHead>
                     </Table>
+                    {scenario.error?
+                    <pre>
+                    <code className={classes.scenarioError}>
+                        {scenario.error}
+                    </code>
+                    </pre>:null}
                     </Grid>
                 </Grid>
         )

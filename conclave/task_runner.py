@@ -1,6 +1,6 @@
 import datetime
 import os
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 from gherkin.token_scanner import TokenScanner
 from gherkin.parser import Parser
 
@@ -25,6 +25,7 @@ import uuid
 import time
 import signal
 from .task_monitor import TaskMonitor
+from .feature_info import FeatureInfo
 
 Dialect.concurrent_keywords = concurrent_keywords
 TokenMatcher.match_StepLine = match_stepline
@@ -46,6 +47,7 @@ class TaskRunner:
         self.testResult: TestResultInfo = None
         self.timeout = timeout
         self.taskMonitor = TaskMonitor()
+        self.featureInfos: list[FeatureInfo] = []
 
     def run(self, featureFiles: list[str]) -> TestResultInfo:
         for file in featureFiles:
@@ -101,22 +103,47 @@ class TaskRunner:
         if "feature" not in result:
             return
 
+        id=uuid.uuid4().hex
+        featureInfo = FeatureInfo(id=id,depends=[],filePath=featureFile)
+        self.featureInfos.append(featureInfo)
+
         if "children" not in result["feature"]:
             return
         
         feature = result["feature"]
+        self.__getFeatureTags(feature, featureInfo)
+        self.__print(f"feature infos: {self.featureInfos}")
         for child in feature["children"]:
             if "scenario" in child:
                 sc = child["scenario"]
                 self.__getScenario(sc, feature)
     
-    # def __getFeatureId(self, feature: Any) -> str:
-    #     tags = feature["tags"]
-    #     id=uuid.uuid4().hex()
-    #     for tag in tags:
-    #         tg = tag["name"]
-    #         if temp := self.__getIdTag(tg, tag): id = temp
-    #     return id
+    def __getFeatureTags(self, feature: Any, featureInfo: FeatureInfo):
+        if "tags" in feature:
+            for tag in feature["tags"]:
+                exists, value = self.__getFeatureTagId(tag)
+                if exists:
+                    featureInfo.id = value
+                exists, value = self.__getFeatureTagDepends(tag)
+                if exists:
+                    featureInfo.depends.append(value)
+
+    
+    def __getFeatureTagId(self, tag: Any) -> Tuple[bool, str]:
+        exists = False
+        tg = tag["name"]
+        value = self.__getIdTag(tg, tag)
+        if value is not None:
+            exists = True
+        return exists,value
+    
+    def __getFeatureTagDepends(self, tag: Any) -> Tuple[bool, str]:
+        exists = False
+        tg = tag["name"]
+        value = self.__getDependsTag(tg, tag)
+        if value is not None:
+            exists = True
+        return exists,value
     
     def __getScenario(self, scenario: Any, feature: Any) -> Task:
         tags = scenario["tags"]

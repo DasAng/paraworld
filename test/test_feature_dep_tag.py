@@ -11,27 +11,18 @@ from conclave.monitor import Monitor
 from conclave.task_runner import TaskRunner
 from conclave.task_logger import TaskLogger
 
-@Step(pattern="^step 1$")
-def step1(logger: TaskLogger, world: World,match: Match[str]):
-    logger.log(f"step 1")
-    time.sleep(10)
-    world.setProp("itemA",["hello"])
-    #time.sleep(10)
-
-@Step(pattern="^step 2$")
-def step2(logger: TaskLogger, world: World,match: Match[str]):
-    logger.log(f"step 2")
-    time.sleep(12)
-    value = world.getProp("itemA")
-    logger.log(f"itemA: {value}")
-
 if __name__ == '__main__':
     print(f"cpu count: {multiprocessing.cpu_count()}")
-    tr = TaskRunner(debugMode=True)
-    testResult = tr.run(["parallel_world.feature"])
+    my_pid = os.getpid()
+    print(f"process pid: {my_pid}")
+    tr = TaskRunner(debugMode=True,timeout=10)
+    testResult = tr.run(["feature_dep_tag.feature"])
 
     print("\nprogram elapsed time :", testResult.elapsed)
+    tr.generateTimeline()
+    tr.generateReport()
 
     if not testResult.success:
         print(f"Test failed")
         os._exit(1)
+            

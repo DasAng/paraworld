@@ -29,6 +29,9 @@ class Scenario:
         self.steps = self.__getAllSteps()
         self.world = World()
         self.pool = ThreadPoolExecutor()
+        self.workerQueue = []
+        self.lock = threading.Lock()
+        self.stopWorker = False
         self.stepsError = {}
         self.result = ScenarioResult(scenario=self.gherkinScenario,id=self.id,steps=self.steps,threadId=None,pid=None,startTime=None,endTime=None)
 
@@ -111,32 +114,36 @@ class Scenario:
         workerThread = None
 
         try:
-            consteps = self.__getAllConcurrentSteps()
-            seqsteps = self.__getAllSequentialSteps()
+            allSteps = self.steps
 
             for step in self.steps:
                 self.__updateStep(step, "skipped", None, 0.0, None, None,None,None, "")
 
-            if len(consteps) > 0:
-                workerThread = threading.Thread(target=self.runWorkerThread,kwargs={'taskList':consteps})
-                workerThread.start()
+            workerThread = threading.Thread(target=self.runWorkerThread,kwargs={'taskList':[]})
+            workerThread.start()
+                
 
-            for step in seqsteps:
+            for step in allSteps:
                 exc = None
                 self.logger.log(f"execute step: {step['keyword']} {step['text']}")
                 func,match = Step.getStep(step['text'])
                 if func:
-                    result = func(self.logger,self.world,match)
-                    if result.error:
-                        self.__updateStep(step, "failed", result.error, result.elapsed, result.pid,result.threadId,result.start,result.end,result.log)
-                        raise Exception(result.error)
+                    if self.__isStepConcurrent(step):
+                        self.logger.log(f"add step to worker queue: {step['keyword']} {step['text']}")
+                        self.__addStepToWorkerPool(step)
                     else:
-                        self.__updateStep(step, "success", result.error, result.elapsed,result.pid,result.threadId,result.start,result.end,result.log)
+                        result = func(self.logger,self.world,match)
+                        if result.error:
+                            self.__updateStep(step, "failed", result.error, result.elapsed, result.pid,result.threadId,result.start,result.end,result.log)
+                            raise Exception(result.error)
+                        else:
+                            self.__updateStep(step, "success", result.error, result.elapsed,result.pid,result.threadId,result.start,result.end,result.log)
                 else:
                     self.__updateStep(step, "skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"")
                     raise Exception(f"Could not find matching step definition for: {step['keyword']}{step['text']}")
                     
         finally:
+            self.stopWorker = True
             if workerThread is not None:
                 workerThread.join()
     
@@ -152,6 +159,19 @@ class Scenario:
             step["end"] = end
             step["log"] = log
 
+    def __addStepToWorkerPool(self, step):
+        with self.lock:
+            self.workerQueue.append(step)
+
+    def __isStepConcurrent(self, step):
+        return step['keyword'] in ('Concurrently ', '(background) Given ','(background) When ','(background) Then ','(background) And ')
+        # return step['keyword'] == 'Concurrently ' or \
+        # step['keyword'] == '(background) Given ' or \
+        # step['keyword'] == '(background) Then ' or \
+        # step['keyword'] == '(background) When ' or \
+        # step['keyword'] == '(background) And '
+
+
     def __getAllConcurrentSteps(self):
         """
         Retrieve all steps marked to be run concurrently
@@ -164,6 +184,11 @@ class Scenario:
         """
         return list(filter(lambda x: x["keyword"] != "Concurrently ", self.steps))
     
+    def __getNextSteps(self):
+        with self.lock:
+            steps, self.workerQueue = self.workerQueue, []
+        return steps
+
     def runWorkerThread(self, taskList):
         futures = {}
         for step in taskList:
@@ -176,8 +201,16 @@ class Scenario:
         self.logger.log(f"add steps for concurrent executions: {[t['keyword']+t['text'] for t in futures.values()]}")
 
         self.stepsError = {}
-        while futures:
-            done, _ = wait(futures,return_when=concurrent.futures.FIRST_COMPLETED)
+        while True:
+            done, _ = wait(futures,return_when=concurrent.futures.FIRST_COMPLETED,timeout=1)
+            nextSteps = self.__getNextSteps()
+            for step in nextSteps:
+                func,match = Step.getStep(step['text'])
+                if func:
+                    self.logger.log(f"add concurrent step for execution: {step['text']}")
+                    futures[self.pool.submit(func, self.logger, self.world,match)] = step
+                else:
+                    self.__updateStep(step, "skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"")
             for c in done:
                 fut = futures.pop(c)
                 result = c.result()
@@ -189,13 +222,31 @@ class Scenario:
                     self.__updateStep(fut,"success",None,result.elapsed,result.pid,result.threadId,result.start,result.end,result.log)
                 
                 self.logger.log(f"completed step: {fut['keyword']} {fut['text']}")
+            
+            if not futures and self.stopWorker:
+                # To avoid scenarios where we have only concurrent steps remaining in the queue and the scenario has no more steps
+                # to execute. Then the main thread will set the variable stopWorker to True, but this thread has not gotten a chance
+                # to retrieve the pending concurrent steps to be executed. So we try and fetch any pending items one last time before
+                # exiting if no pending steps are found.
+                nextSteps = self.__getNextSteps()
+                for step in nextSteps:
+                    func,match = Step.getStep(step['text'])
+                    if func:
+                        self.logger.log(f"add concurrent step for execution: {step['text']}")
+                        futures[self.pool.submit(func, self.logger, self.world,match)] = step
+                    else:
+                        self.__updateStep(step, "skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"")
+                if not futures:
+                    break
     
     def __getstate__(self):
         state = self.__dict__.copy()
         del state["pool"]
+        del state["lock"]
         return state
     
     def __setstate__(self,state):
         self.__dict__.update(state)
         self.pool = ThreadPoolExecutor()
+        self.lock = threading.Lock()
              

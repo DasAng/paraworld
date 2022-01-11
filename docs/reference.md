@@ -222,6 +222,7 @@ This field shows if the test run completed successfully or failed. If True then 
 # Class World
 
 This class is responsible for keeping track of all contextual data for the entire test run. It is a thread-safe and immutable key-value dictionary that can be accessed by all step definitions across the test run. This class is implemented as a singleton class and therefore only has one copy throughout the entire application lifetime.
+This class will also be synchronized across multiple process when scenarios are running in parallel in different processes.
 
 The singleton instance will be passed as a parameter to every step definitions.
 
@@ -255,3 +256,7 @@ This method can be used to retrieve any value stored under the specified *key*. 
 - returns \<None>
 
 This method can be used to store any value under the specified key. This method is thread-safe.
+
+---
+
+[Home](#../README.md)

@@ -84,7 +84,7 @@ Create a new python file called *api_test.py* and paste the below code into it:
 
 Lets go through the above code. We are importing a few modules from line 1-2 and the important thing to notice above is the modules starting with **conclave** are the actual modules from **paraworld**.
 
-Next we implements the *main* method in line 10 for this file and in the main method we instantiates an instance of class [TaskRunner](docs/reference.md#taskrunner) in line 10. To start the execution of the feature file we will need to call the [run method](docs/reference.md#taskrunner-run) of the taskrunner instance passing in the name and path of the feature file we wish to execute. As you can see we can pass in multiple feature files to be executed, but in our case we only have a single feature we wish to execute.
+Next we implements the *main* method in line 10 for this file and in the main method we instantiates an instance of class [TaskRunner](docs/reference.md#class-taskrunner) in line 10. To start the execution of the feature file we will need to call the [run method](docs/reference.md#runfeaturefiles) of the taskrunner instance passing in the name and path of the feature file we wish to execute. As you can see we can pass in multiple feature files to be executed, but in our case we only have a single feature we wish to execute.
 
 Once the execution of the feature file has been completed we will get back a [TestResultInfo](docs/reference.md#testresultinfo) object which stores information with regards to the execution of the feature file.
 In line 13 we are printing out the time it elapsed time of the entire execution. Then in line 15 we check if the execution has completed successfully and if it has not then we will exit the application with exit code 1.
@@ -99,7 +99,7 @@ You will see output similar to something like the below:
 
 ![](docs/images/getting_started_run_result_1_small.png)
 
-Lets examine the console output above. The text lines in cyan color are debug level messages. If we don't want to see the debug messages we should set the [debugMode parameter](docs/reference.md#taskrunner) to false. In our case it has been set to True in line 11 in the api_test.py code.
+Lets examine the console output above. The text lines in cyan color are debug level messages. If we don't want to see the debug messages we should set the [debugMode parameter](docs/reference.md#class-taskrunner) to false. In our case it has been set to True in line 11 in the api_test.py code.
 
 Following the debug messages we then have lines printed out in white color like the following:
 
@@ -159,13 +159,13 @@ In the following we will create a new python file to store our step definitions.
 
 Let's go through the code and explain how we have defined the step definitions. In line 2-3 we have imported the **paraworld** modules needed to define step definitions. We have created to functions called *callAPIendpointStep* and *validateStatusCodeStep* in line 6 and 10. These functions will do nothin as of now.
 
-In order to mark a function as a step definition we will be using a python decorator class [Step](docs/reference.md#step). Line 5 and 9 we have added the **@Step** decorator to mark our two functions as step definitions. The **Step** decorator also takes a single parameter named *pattern* where the value is a regular expression that will be used by the TaskRunner to match against the text steps.
+In order to mark a function as a step definition we will be using a python decorator class [Step](docs/reference.md#class-step). Line 5 and 9 we have added the **@Step** decorator to mark our two functions as step definitions. The **Step** decorator also takes a single parameter named *pattern* where the value is a regular expression that will be used by the TaskRunner to match against the text steps.
 
 As you can see the two functions both have the same number of arguments:
 
-- **logger** - an instance of class [TaskLogger](docs/reference.md#tasklogger). This object can be used to log information and will be shown in the console.
-- **world** - an instance of class [World](docs/reference.md#world). The **World** class is an immutable key/value store that can be shared across features, scenarios and steps. It encompasses all shared variables across the entire application. We will show its usage later on.
-- **match** - an instance of class Match. This object holds the result of the matched regular expression and can for example be used to extract capturing groups from the regular expression. We will show its usage later on.
+- **logger** - an instance of class [TaskLogger](docs/reference.md#class-tasklogger). This object can be used to log information and will be shown in the console.
+- **world** - an instance of class [World](docs/reference.md#class-world). The **World** class is an immutable key/value store that can be shared across features, scenarios and steps. It encompasses all shared variables across the entire application. We will show its usage later on.
+- **match** - an instance of class [Match](https://docs.python.org/3/library/re.html#match-objects). This object holds the result of the matched regular expression and can for example be used to extract capturing groups from the regular expression. We will show its usage later on.
 
 So now that we have implemented the step definition let's make sure our test knows about the definition and re-run the feature file.
 

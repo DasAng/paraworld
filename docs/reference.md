@@ -15,8 +15,15 @@
     - [generateTimeline()](#generatetimeline)
     - [run(featureFiles)](#runfeaturefiles)
 - [class TestResultInfo](#class-testresultinfo)
-    - [elapsed: \<int>](#elapsed:-<int>)
+    - [elapsed: \<int>](#elapsed-int)
+    - [end: \<str>](#end-str)
+    - [numCpu: \<int>](#numcpu-int)
+    - [pid: \<int>](#pid-int)
+    - [start: \<str>](#start-str)
+    - [success: \<bool>](#success-bool)
 - [class World](#class-world)
+    - [getProp(key)](#getpropkey)
+    - [setProp(key,value)](#setpropkeyvalue)
 
 # Class Step
 
@@ -161,7 +168,7 @@ tr.run(["test.feature"])
 tr.generateTimeline()
 ```
 
-## Run(featureFiles)
+## run(featureFiles)
 
 - `featureFiles`: \<list[str]> A list of filepaths of the feature files to run.
 - returns \<[TestResultInfo](#class-testresultinfo)> object
@@ -212,3 +219,39 @@ This field shows the start time and date of when the test run has been started.
 
 This field shows if the test run completed successfully or failed. If True then it is successfull.
 
+# Class World
+
+This class is responsible for keeping track of all contextual data for the entire test run. It is a thread-safe and immutable key-value dictionary that can be accessed by all step definitions across the test run. This class is implemented as a singleton class and therefore only has one copy throughout the entire application lifetime.
+
+The singleton instance will be passed as a parameter to every step definitions.
+
+The following example shows how the world instance is being used to store the password in one step definition and retrieve the password from another step definition:
+
+```python
+@Step(pattern="login to database using master")
+def loginToDatabaseStep(logger: TaskLogger, world: World, match: Match[str]):
+    # use the world instance to retrieve the password under the key "password"
+    password = world.getProp("password")
+
+@Step(pattern="set master password")
+def setMasterPasswordStep(logger: TaskLogger, world: World, match: Match[str]):
+    # use the world instance to store value
+    world.setProp("password","xasdxawdadas")
+```
+
+By using the world object you will avoid having to have global variables which are not thread-safe and prone to error. In addition any objects stored inside the world object are immutable so they cannot be changed without having to replace the object again. This is helpful to keep the integrity of the data being stored. Changing the returned object will not affect the object in store.
+
+## getProp(key)
+
+- `key`: \<str> gets the value stored under the specified key
+- returns \<Any|None> the object or value if present otherwise None
+
+This method can be used to retrieve any value stored under the specified *key*. If the key is not found then *None* is returned. This method is thread-safe
+
+## setProp(key,value)
+
+- `key`: \<str> the key where the value will be stored under
+- `value`: \<Any> the value to be stored
+- returns \<None>
+
+This method can be used to store any value under the specified key. This method is thread-safe.

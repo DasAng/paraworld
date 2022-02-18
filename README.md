@@ -98,10 +98,10 @@ Create a new python file called *api_test.py* and paste the below code into it:
 
 Lets go through the above code. We are importing a few modules from line 1-2 and the important thing to notice above is the modules starting with **conclave** are the actual modules from **paraworld**.
 
-Next we implements the *main* method in line 10 for this file and in the main method we instantiates an instance of class [TaskRunner](docs/api.md#class-taskrunner) in line 10. To start the execution of the feature file we will need to call the [run method](docs/api.md#runfeaturefiles) of the taskrunner instance passing in the name and path of the feature file we wish to execute. As you can see we can pass in multiple feature files to be executed, but in our case we only have a single feature we wish to execute.
+Next we implements the *main* method in line 4 for this file and in the main method we instantiates an instance of class [TaskRunner](docs/api.md#class-taskrunner) in line 5. To start the execution of the feature file we will need to call the [run method](docs/api.md#runfeaturefiles) of the taskrunner instance passing in the name and path of the feature file we wish to execute. As you can see we can pass in multiple feature files to be executed, but in our case we only have a single feature we wish to execute.
 
 Once the execution of the feature file has been completed we will get back a [TestResultInfo](docs/api.md#testresultinfo) object which stores information with regards to the execution of the feature file.
-In line 13 we are printing out the time it elapsed time of the entire execution. Then in line 15 we check if the execution has completed successfully and if it has not then we will exit the application with exit code 1.
+In line 8 we are printing out the time it elapsed time of the entire execution. Then in line 10 we check if the execution has completed successfully and if it has not then we will exit the application with exit code 1.
 
 Lets execute the above python file:
 
@@ -246,7 +246,7 @@ The code for the step definitions are not that interesting since they do nothing
 19      logger.log(f"expected status code: {statusCode} SUCCESS")
 ```
 
-Let's go through the code above and explain it. Line 7 we are extracting the url from the regular expression capturing group at index 1. This will give us whatever url the step text has supplied. Line 9 we have used the logger object to print the url to the console. Line 10 is the actual call to the url using HTTP GET. Line 11 we print out the response from the HTTP GET request. And line 12 we are using the world object to store the value of the status code under the key *ApiStatusCode*
+Let's go through the code above and explain it. Line 8 we are extracting the url from the regular expression capturing group at index 1. This will give us whatever url the step text has supplied. Line 9 we have used the logger object to print the url to the console. Line 10 is the actual call to the url using HTTP GET. Line 11 we print out the response from the HTTP GET request. And line 12 we are using the world object to store the value of the status code under the key *ApiStatusCode*
 
 Moving on to the next step definition we have line 15 which will be extracting the expected status code value from the regular expression capturing group at index 1. Line 6 we use the world object to retrieve the real status code value we have stored from the step definition in line 12. Line 17 we compare if the real status code matches the expected status code and if not we will raise an exception. Line 19 we print out that it all matches successfully.
 

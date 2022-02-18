@@ -8,7 +8,7 @@ The framework supports the following distinct features:
 - [Run scenarios concurrently](#concurrent-scenarios)
 - [Run scenarios in parallel](#parallel-scenarios)
 - [Run steps concurrently](#concurrent-steps)
-- [Apply ordering and dependency for scenarios](docs/dependency_management.md)
+- [Apply ordering and dependency for scenarios](#dependency)
 - [Timeline visualization](docs/timeline.md)
 - [Dependency visualization](docs/dependency.md)
 - [Report visualization](docs/report.md)
@@ -22,6 +22,7 @@ The framework supports the following distinct features:
     - [Create step definition](#step-definition)
     - [Include step definition module and run gherkin feature file](#include-step-definition-module-and-run-gherkin-feature-file)
     - [Implement functionality for step definition](#implement-functionality-for-step-definition)
+- [Execution flow](#execution-flow)
 - [Features](#features)
   - [Concurrent scenarios](#concurrent-scenarios)
   - [Parallel scenarios](#parallel-scenarios)
@@ -260,6 +261,66 @@ The output should show something like the below:
 
 We can see from the output that all steps have been executed successfully and the expected status code is 200 after calling the API endpoint.
 
+# Execution flow
+
+This part of the section will describe how **paraworld** run gherkin feature files and their scenarios. Understanding the execution flow will help you write gherkin scenarios in a much more efficient way and also avoids mistakes and troubleshooting time.
+
+The following pseudo code describes how the execution flow looks like:
+
+```
+# collect all scenarios
+
+for each feature file
+  get all scenarios
+
+# run all scenarios with @setup tags first
+
+for each scenario marked with @setup tag
+  does scenario have any @depends or @dependsGroups tag?
+    if yes:
+      check if any dependent scenario or group of scenarios have completed and if they have all completed then start this scenario.
+      Otherwise put this scenario on pending list.
+  does scenario have the @parallel or @concurrent tags?
+    if yes then start the scenario immediately in another thread or another process
+  If scenario is not on pending list start it immediately
+
+# run all scenarios not marked as @setup or @teardown
+
+for each scenario not marked with @setup or @teardown 
+  does scenario have any @depends or @dependsGroups tag?
+    if yes:
+      check if any dependent scenario or group of scenarios have completed and if they have all completed then start this scenario.
+      Otherwise put this scenario on pending list.
+  does scenario have the @parallel or @concurrent tags?
+    if yes then start the scenario immediately in another thread or another process
+  If scenario is not on pending list start it immediately
+
+# run all scenarios with @teardown tags
+
+for each scenario marked with @teardown tag
+  does scenario have any @depends or @dependsGroups tag?
+    if yes:
+      check if any dependent scenario or group of scenarios have completed and if they have all completed then start this scenario.
+      Otherwise put this scenario on pending list.
+  does scenario have the @parallel or @concurrent tags?
+    if yes then start the scenario immediately in another thread or another process
+  If scenario is not on pending list start it immediately
+
+```
+
+Let's break down the execution flow above.
+
+1. All the feature files are parsed and all the scenarios in all the feature files are collected.
+2. All scenarios that have the tag [@setup](docs/tags.md#setup) will be scheduled to run.
+  2.1 The order of execution for scenarios are as follow:
+    
+    2.1.1. All scenarios are executed in the order they are written in a feature file. Since scenarios belong to different feature files scenarios are ordered by feature files.
+
+    2.1.2. Scenarios run sequentially, so scenarios will only run once the previous scenario has completed successfully.
+
+    2.1.3. If a scenario has a [@depends](docs/tags.md#depends) or [@dependsGroups](docs/tags.md#dependsGroups) tag it will not be executed unless the depending scenarios or group of scenarios have completed. Instead it will be marked as pending and will be checked again next time another scenario completes it's execution.
+
+    2.1.4. If a scenario has a [@concurrent](docs/tags.md#concurrnet) or [@parallel](docs/tags.md#parallel) tag it will be started immediately unless it has a dependency tag as in 2.1.3. The scenario will be scheduled to run in another thread or another process.
 # Features
 
 **paraworld** adds additional functionality to the gherkin feature by allowing you to execute scenarios and steps concurrently, in parallel and/or with ordering and dependency. This allows you to write flexible scenarios that can be optimized for performance as well as ensure scenarios runs a specific order.

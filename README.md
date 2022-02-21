@@ -9,9 +9,9 @@ The framework supports the following distinct features:
 - [Run scenarios in parallel](#parallel-scenarios)
 - [Run steps concurrently](#concurrent-steps)
 - [Apply ordering and dependency for scenarios](#dependency)
-- [Timeline visualization](docs/timeline.md)
-- [Dependency visualization](docs/dependency.md)
-- [Report visualization](docs/report.md)
+- [Timeline visualization](#timeline-visualization)
+- [Dependency visualization](#dependency-graph)
+- [Report visualization](#report-visualization)
 
 # Documentation
 
@@ -30,10 +30,12 @@ The framework supports the following distinct features:
   - [Dependency](#dependency)
   - [Groups](#groups)
   - [Setup and teardown](#setup-and-teardown)
+  - [Timeline visualization](#timeline-visualization)
+  - [Dependency graph](#dependency-graph)
+  - [Report visualization](#report-visualization)
 - [Reference](#reference)
     - [API](#api)
     - [Tags](#tags)
-- [Examples](#examples)
 - [Development](#development)
   - [virtual environment](#virtual-environment)
   - [build](#build)
@@ -424,11 +426,11 @@ Data are local to each process, unless you store them in the [World](docs/api.md
 
 **paraworld** allows you to run each gherkin step in a separate thread, thus you could have both multi-threaded scenarios that in themselves contain multi-threaded steps. To make steps run concurrently **paraworld** has extended the gherkin language to support a few additional keywords that can be used in front of steps. These are:
 
-- [(background) Given](docs/tags.md#background)
-- [(background) When](docs/tags.md#background)
-- [(background) Then](docs/tags.md#background)
-- [(background) And](docs/tags.md#background)
-- [Concurrently](docs/tags.md#concurrently)
+- [(background) Given](docs/steps.md#background)
+- [(background) When](docs/steps.md#background)
+- [(background) Then](docs/steps.md#background)
+- [(background) And](docs/steps.md#background)
+- [Concurrently](docs/steps.md#concurrently)
 
 Any steps that contains those keyword at the beginning of the text will be scheduled to run concurrently in a separate thread.
 
@@ -610,6 +612,18 @@ Let's break down the example above.
 
 So setup and teardown features are useful if you need to ensure proper setup of all your scenarios and cleanup afterwards.
 
+## Timeline visualization
+
+Take a look [here](docs/timeline-visualization.md#timeline-visualization) to learn more about the timeline visualization.
+
+## Dependency graph
+
+Take a look [here](docs/dependency-graph.md#dependency-graph) to learn more about the dependency graph.
+
+## Report visualization
+
+Take a look [here](docs/report-visualization.md#report-visualization) to learn more about the report visualization.
+
 # Reference
 
 ## API
@@ -619,16 +633,6 @@ So setup and teardown features are useful if you need to ensure proper setup of 
 ## Tags
 
 [Here](docs/tags.md#tag-reference) is a complete refereance of all the available tags in **paraworld**
-
-# Examples
-
-Here is a list of different examples that showcases the different features of **paraworld**:
-
-- [Concurrent scenarios](docs/examples/concurrent-scenarios.md)
-- [Parallel scenarios](docs/examples/parallel-scenarios.md)
-- [Scenario dependency](docs/examples/scenario-dependency.md)
-- [Groups](docs/examples/groups.md)
-- [Concurrent steps](docs/examples/concurrent-steps.md)
 
 # Development
 

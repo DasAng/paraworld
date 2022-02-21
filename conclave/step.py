@@ -29,7 +29,7 @@ class Step:
     Example usage:
 
     @Step(pattern="I login to webiste")
-    def mystep(logger):
+    def mystep(logger, world, match):
         logger.log(f"mystep called")
     """ 
     stepDefinitions: list[StepDefinition] = []

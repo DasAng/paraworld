@@ -1,5 +1,7 @@
 # Report visualization
 
+This is the documentation for **Version 1.0.0**
+
 **paraworld** can produce a custom HTML report of the execution that will display all the features, scenarios and steps being executed.
 
 To generate the timeline graph you will need to call the method [generateReport()](api.md#generatereport) of the [TaskRunner](api.md#class-taskrunner) object.
@@ -15,7 +17,7 @@ tr.generateReport()
 
 The output will be an HTML file named *report_output.html* which will look something like this:
 
-![](images/report-output.png)
+![](../images/report-output.png)
 
 Lets break down the main parts of the UI above:
 

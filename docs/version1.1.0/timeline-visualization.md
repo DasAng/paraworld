@@ -1,5 +1,7 @@
 # Timeline visualization
 
+This is the documentation for **Version 1.1.0**
+
 **paraworld** can visualize the flow of execution as a timeline graph. This is helpful in understanding how long each scenario takes to execute and when they are being executed in time as well as understanding the concurrency and parallelization part of the execution flow.
 
 To generate the timeline graph you will need to call the method [generateTimeline()](api.md#generatetimeline) of the [TaskRunner](api.md#class-taskrunner) object.
@@ -15,7 +17,7 @@ tr.generateTimeline()
 
 The output will be an HTML file named *timeline_output.html* which will look something like this:
 
-![](images/timeline-output.png)
+![](../images/timeline-output.png)
 
 Lets break down the main parts of the UI above:
 

@@ -2,9 +2,9 @@ from distutils.core import setup
 
 setup(name="paraworld",
       packages=["conclave"],
-      version="1.0.0",
-      description="A BDD framework for concurrent tests",
-      long_description="A BDD framework writing concurrent and parallel tests",
+      version="1.1.0",
+      description="A BDD framework for running parallel and concurrent tests",
+      long_description="A BDD framework for writing concurrent and parallel tests",
       author="DasAng",
       author_email="",
       url="https://github.com/DasAng/paraworld",

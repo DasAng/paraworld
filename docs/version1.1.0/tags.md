@@ -1,5 +1,7 @@
 # Tag Reference
 
+This is the documentation for **Version 1.1.0**
+
 **Table of contents**
 
 - [@concurrent](#concurrent)

@@ -1,6 +1,7 @@
 import datetime
 import os
-from typing import Any, Optional
+import glob
+from typing import Any, Optional, Union
 from gherkin.token_scanner import TokenScanner
 from gherkin.parser import Parser
 
@@ -25,6 +26,7 @@ import uuid
 import time
 import signal
 from .task_monitor import TaskMonitor
+from .task_runner_config import TaskRunnerConfig
 
 Dialect.concurrent_keywords = concurrent_keywords
 TokenMatcher.match_StepLine = match_stepline
@@ -47,9 +49,17 @@ class TaskRunner:
         self.timeout = timeout
         self.taskMonitor = TaskMonitor()
 
-    def run(self, featureFiles: list[str]) -> TestResultInfo:
-        for file in featureFiles:
-            self.__parse(file)
+    def run(self, options: Union[list[str],TaskRunnerConfig]) -> TestResultInfo:
+        
+        if isinstance(options,TaskRunnerConfig):
+            if len(options.featureFiles) > 0:
+                files = self.__getAllFeatureFiles(options.featureFiles)
+                for file in files:
+                    self.__parse(file, options.onlyRunScenarioTags)
+        else:
+            files = self.__getAllFeatureFiles(options)
+            for file in files:
+                self.__parse(file, [])
         
         start = time.time()
         startDate = datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
@@ -93,7 +103,22 @@ class TaskRunner:
 
         return self.testResult
 
-    def __parse(self, featureFile: str):
+    def __getAllFeatureFiles(self, paths: list[str]) -> list[str]:
+        featureFiles: list[str] = []
+        for p in paths:
+            fullPath = os.path.abspath(p)
+            if os.path.isfile(fullPath):
+                if fullPath not in featureFiles:
+                    featureFiles.append(fullPath)
+            elif os.path.isdir(fullPath):
+                files = glob.glob(fullPath + '/**/*.feature', recursive=True)
+                for file in files:
+                    if file not in featureFiles:
+                        featureFiles.append(file)
+        return featureFiles
+                
+
+    def __parse(self, featureFile: str, onlyTags: list[str]):
         result = self.parser.parse(TokenScanner(featureFile))
         if not result:
             return
@@ -108,7 +133,7 @@ class TaskRunner:
         for child in feature["children"]:
             if "scenario" in child:
                 sc = child["scenario"]
-                self.__getScenario(sc, feature)
+                self.__getScenario(sc, feature, onlyTags)
     
     # def __getFeatureId(self, feature: Any) -> str:
     #     tags = feature["tags"]
@@ -118,9 +143,19 @@ class TaskRunner:
     #         if temp := self.__getIdTag(tg, tag): id = temp
     #     return id
     
-    def __getScenario(self, scenario: Any, feature: Any) -> Task:
+    def __getScenario(self, scenario: Any, feature: Any, onlyIncludeTags: list[str]) -> Optional[Task]:
         tags = scenario["tags"]
         isConcurrent,id,depends,dependsGroups,group,runAlways,isSetup,isTeardown,isParallel = False,uuid.uuid4().hex,[],[],None,False,False,False,False
+        
+        # if scenario tags filtering is specified an scenario does not have any tag then exclude this scenario
+        if len(onlyIncludeTags) > 0 and len(tags) <= 0:
+            return None
+
+        # filter scenario based on tags
+        if len(onlyIncludeTags) > 0:
+            if not any(item["name"] in onlyIncludeTags for item in tags):
+                return None
+
         for tag in tags:
             tg = tag["name"]
             if temp := self.__getConcurrentTag(tg): isConcurrent = temp

@@ -1,5 +1,7 @@
 # API Reference
 
+This is the documentation for **Version 1.0.0**
+
 **Table of contents**
 
 - [class Step](#class-step)
@@ -259,4 +261,4 @@ This method can be used to store any value under the specified key. This method 
 
 ---
 
-[Home](../README.md)
+[Home](../../README.md)

@@ -269,16 +269,20 @@ class TaskRunner:
         self.__print(f"tasks in pool: {[(f'name: {t.name}',f'id:{t.id}') for t in futures.values()]}")
 
         startTime = time.time()
+        currentTimeout = self.timeout
         while futures:
-            done, notDone = wait(futures,return_when=concurrent.futures.FIRST_COMPLETED,timeout=1)
+            done, notDone = wait(futures,return_when=concurrent.futures.FIRST_COMPLETED,timeout=currentTimeout)
             endTime = time.time()
             elapsed = endTime-startTime
-            if elapsed >= self.timeout:
+            self.__print(f"elapsed time waiting for task to complete: {elapsed}")
+            if elapsed >= currentTimeout:
                 for c in notDone:
                     self.__print(f"tasks not done: (name:{futures[c].name},id:{futures[c].id}, running:{c.running()},cancelled:{c.cancelled()})")
                     self.__addTaskToReport(futures[c],"failed","timeout waiting for task to complete",self.timeout, None)
                 self.__print(f"timeout waiting {self.timeout} (s) for remaining tasks to complete. Aborting.")
                 break
+            currentTimeout = currentTimeout - elapsed
+            self.__print(f"Remaining timeout: {currentTimeout}")
             for c in done:
                 fut = futures.pop(c)
                 result = c.result()

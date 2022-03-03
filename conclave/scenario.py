@@ -202,7 +202,26 @@ class Scenario:
 
         self.stepsError = {}
         while True:
-            done, _ = wait(futures,return_when=concurrent.futures.FIRST_COMPLETED,timeout=1)
+            # fix issue with 100% CPU usage when there are no concurrent tasks
+            # but we still call wait() with timeout of 1 seconds. This causes
+            # a busy wait loop that eats up all CPU time. Instead we will check
+            # if we have any concurrent tasks and then just sleep for 1 seconds
+            # before the next check
+            if not futures:
+                time.sleep(1)
+            else:
+                done, _ = wait(futures,return_when=concurrent.futures.FIRST_COMPLETED,timeout=1)
+                for c in done:
+                    fut = futures.pop(c)
+                    result = c.result()
+                    if result.error:
+                        self.stepsError[fut["keyword"]+fut["text"]] = result.error
+                        self.logger.error(f"failed: {result.error}")
+                        self.__updateStep(fut,"failed",result.error,result.elapsed,result.pid,result.threadId,result.start,result.end,result.log)
+                    else:
+                        self.__updateStep(fut,"success",None,result.elapsed,result.pid,result.threadId,result.start,result.end,result.log)
+                    
+                    self.logger.log(f"completed step: {fut['keyword']} {fut['text']}")
             nextSteps = self.__getNextSteps()
             for step in nextSteps:
                 func,match = Step.getStep(step['text'])
@@ -211,18 +230,6 @@ class Scenario:
                     futures[self.pool.submit(func, self.logger, self.world,match)] = step
                 else:
                     self.__updateStep(step, "skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"")
-            for c in done:
-                fut = futures.pop(c)
-                result = c.result()
-                if result.error:
-                    self.stepsError[fut["keyword"]+fut["text"]] = result.error
-                    self.logger.error(f"failed: {result.error}")
-                    self.__updateStep(fut,"failed",result.error,result.elapsed,result.pid,result.threadId,result.start,result.end,result.log)
-                else:
-                    self.__updateStep(fut,"success",None,result.elapsed,result.pid,result.threadId,result.start,result.end,result.log)
-                
-                self.logger.log(f"completed step: {fut['keyword']} {fut['text']}")
-            
             if not futures and self.stopWorker:
                 # To avoid scenarios where we have only concurrent steps remaining in the queue and the scenario has no more steps
                 # to execute. Then the main thread will set the variable stopWorker to True, but this thread has not gotten a chance

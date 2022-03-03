@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.1.1] - 
+
+### Fixed
+
+- High CPU usage in TaskRunner due to busy wait loop when checking completed tasks and timeout
+- High CPU usage in running scenario steps when no concurrent steps are running
+
 ## [1.1.0] - 2022-02-27
 
 ### Added

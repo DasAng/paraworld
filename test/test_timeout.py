@@ -14,7 +14,7 @@ from conclave.task_logger import TaskLogger
 @Step(pattern="^run for long time$")
 def longRunningStep(logger: TaskLogger, world: World,match: Match[str]):
     logger.log(f"long running step")
-    time.sleep(30)
+    time.sleep(3)
 
 if __name__ == '__main__':
     print(f"cpu count: {multiprocessing.cpu_count()}")

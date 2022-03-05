@@ -115,13 +115,16 @@ class Scenario:
 
         try:
             allSteps = self.steps
+            foundConcurrentSteps = False
 
             for step in self.steps:
                 self.__updateStep(step, "skipped", None, 0.0, None, None,None,None, "")
+                if self.__isStepConcurrent(step):
+                    foundConcurrentSteps = True
 
-            workerThread = threading.Thread(target=self.runWorkerThread,kwargs={'taskList':[]})
-            workerThread.start()
-                
+            if foundConcurrentSteps:
+                workerThread = threading.Thread(target=self.runWorkerThread,kwargs={'taskList':[]})
+                workerThread.start()
 
             for step in allSteps:
                 exc = None
@@ -171,19 +174,6 @@ class Scenario:
         # step['keyword'] == '(background) When ' or \
         # step['keyword'] == '(background) And '
 
-
-    def __getAllConcurrentSteps(self):
-        """
-        Retrieve all steps marked to be run concurrently
-        """
-        return list(filter(lambda x: x["keyword"] == "Concurrently ", self.steps))
-    
-    def __getAllSequentialSteps(self):
-        """
-        Retrieve all sequential steps
-        """
-        return list(filter(lambda x: x["keyword"] != "Concurrently ", self.steps))
-    
     def __getNextSteps(self):
         with self.lock:
             steps, self.workerQueue = self.workerQueue, []

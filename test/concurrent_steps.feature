@@ -23,7 +23,6 @@ Feature: Concurrent steps
         Then step1
         Concurrently step2
     
-    #@parallell
     Scenario: sequential steps only
         Then step1
         Then step1

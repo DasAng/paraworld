@@ -10,6 +10,7 @@ import multiprocessing
 from conclave.monitor import Monitor
 from conclave.task_runner import TaskRunner
 from conclave.task_logger import TaskLogger
+from conclave.monitor import Monitor
 
 @Step(pattern="^step1$")
 def step1(logger: TaskLogger, world: World,match: Match[str]):
@@ -25,12 +26,18 @@ def step2(logger: TaskLogger, world: World,match: Match[str]):
 
 if __name__ == '__main__':
     print(f"cpu count: {multiprocessing.cpu_count()}")
+    mon = Monitor()
+    mon.startMonitor()
     tr = TaskRunner(debugMode=True)
     testResult = tr.run(["concurrent_steps.feature"])
 
     print("\nprogram elapsed time :", testResult.elapsed)
     
+    mon.stopMonitor()
+    mon.generateReport(tr.taskReport)
+
     tr.generateTimeline()
+    tr.generateReport()
 
     if not testResult.success:
         print(f"Test failed")

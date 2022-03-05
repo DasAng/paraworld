@@ -37,9 +37,12 @@ pip install paraworld
 
 Below is the documentation for all the versions.
 
+- [Version 1.1.2](docs/version1.1.2/main.md#paraworld)
 - [Version 1.1.1](docs/version1.1.1/main.md#paraworld)
 - [Version 1.1.0](docs/version1.1.0/main.md#paraworld)
 - [Version 1.0.0](docs/version1.0.0/main.md#paraworld)
+
+See the [changelog](CHANGELOG.md) for changes.
 
 # Development
 

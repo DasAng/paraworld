@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.1.2] - 2022-03-05
+
+### Fixed
+
+- Optimize scenario to use less thread, when no concurrent steps are found
+
 ## [1.1.1] - 2022-03-03
 
 ### Fixed

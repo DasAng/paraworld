@@ -1,14 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Any
 
-from .helpers import excludeKeys
-from .scenario import Scenario
-
 @dataclass
-class Task:
-    name: str
-    scenario: Scenario
-    feature: Any
+class ScenarioContext:
     id: str
     depends: list[str] = field(default_factory=list)
     dependsGroups: list[str] = field(default_factory=list)
@@ -18,5 +12,3 @@ class Task:
     isConcurrent: bool = False
     isTeardown: bool = False
     isParallel: bool = False
-    
-        

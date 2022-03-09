@@ -54,8 +54,11 @@ def runMonitor(q: multiprocessing.Queue):
             if p.pid not in procList and p.pid != selfPid:
                 procList[p.pid] = p
             if p.pid != selfPid:
-                usage = getCpuUsageByPid(procList[p.pid])
-                datapoint.append(usage)
+                try:
+                    usage = getCpuUsageByPid(procList[p.pid])
+                    datapoint.append(usage)
+                except Exception as e:
+                    print(f"monitor failed to get cpu usage for pid: {e}")
         writeDataPoints(datapoint, fileName)
         try:
             msg = q.get(block=False)

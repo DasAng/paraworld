@@ -1,9 +1,14 @@
 from concurrent.futures import ThreadPoolExecutor, wait
 import concurrent
+from dataclasses import asdict
 import multiprocessing
 from typing import Any
 from datetime import datetime
+
+from .feedback_schema import FeatureInfo, ScenarioFeedback, ScenarioInfo, StepFeedback
+
 from .scenario_result import ScenarioResult
+from .scenario_context import ScenarioContext
 
 from .task_logger import TaskLogger
 import traceback
@@ -34,8 +39,9 @@ class Scenario:
         self.stopWorker = False
         self.stepsError = {}
         self.result = ScenarioResult(scenario=self.gherkinScenario,id=self.id,steps=self.steps,threadId=None,pid=None,startTime=None,endTime=None)
+        self.context = None
 
-    def run(self, queue: multiprocessing.Queue):
+    def run(self, queue: multiprocessing.Queue, feedbackQueue: multiprocessing.Queue, context: ScenarioContext):
         """
         Execute the scenario
         """
@@ -47,8 +53,10 @@ class Scenario:
         self.logger.log(f"thread id: {threading.get_ident()}")
         start = time.time()
         exc = None
+        self.context = context
         try:
-            self.__runSteps()
+            self.notifyScenarioStarted(feedbackQueue, self.context, start)
+            self.__runSteps(feedbackQueue)
             if self.stepsError:
                 for key in self.stepsError:
                     exc = f"Concurrent/parallel step: {key}\n{self.stepsError[key]}\n"
@@ -72,6 +80,32 @@ class Scenario:
             self.result.endTime = datetime.fromtimestamp(end)
             return self.result
 
+    def notifyScenarioStarted(self,feedbackQueue: multiprocessing.Queue, context: ScenarioContext, start: float):
+        try:
+            feed = ScenarioFeedback()
+            contextDict = asdict(context)
+            feedDict = asdict(feed)
+            feed = ScenarioFeedback(**{k:(contextDict[k] if k in contextDict else v) for k,v in feedDict.items()})
+            feed.name = self.name
+            feed.elapsed = 0
+            feed.startTime = datetime.fromtimestamp(start)
+            feed.id = self.id
+            feed.pid = os.getpid()
+            feed.threadId = threading.get_ident()
+            feed.status = "starting"
+            feed.tags = [t["name"] for t in self.gherkinScenario["tags"]]
+            feed.numberOfSteps = len(self.gherkinScenario["steps"])
+            feed.column = self.gherkinScenario["location"]["column"]
+            feed.line = self.gherkinScenario["location"]["line"]
+            feed.description = self.gherkinScenario["description"]
+            feed.featureInfo=FeatureInfo(
+                description=self.gherkinFeature["description"],
+                name=self.gherkinFeature["name"],
+                tags=[t["name"] for t in self.gherkinFeature["tags"]]
+            )
+            feedbackQueue.put_nowait(asdict(feed))
+        except Exception as e:
+            pass
     
     def msg(self):
         return self.logger.msg
@@ -107,7 +141,7 @@ class Scenario:
         bgSteps.extend(steps)
         return bgSteps
 
-    def __runSteps(self):
+    def __runSteps(self, feedbackQueue: multiprocessing.Queue):
         """
         Execute all steps in the scenario
         """
@@ -123,7 +157,7 @@ class Scenario:
                     foundConcurrentSteps = True
 
             if foundConcurrentSteps:
-                workerThread = threading.Thread(target=self.runWorkerThread,kwargs={'taskList':[]})
+                workerThread = threading.Thread(target=self.runWorkerThread,kwargs={'taskList':[],'feedbackQueue': feedbackQueue})
                 workerThread.start()
 
             for step in allSteps:
@@ -135,14 +169,17 @@ class Scenario:
                         self.logger.log(f"add step to worker queue: {step['keyword']} {step['text']}")
                         self.__addStepToWorkerPool(step)
                     else:
-                        result = func(self.logger,self.world,match)
+                        result = func(self.logger,self.world,match,step,self.gherkinScenario,self.gherkinFeature,feedbackQueue)
                         if result.error:
                             self.__updateStep(step, "failed", result.error, result.elapsed, result.pid,result.threadId,result.start,result.end,result.log)
+                            self.__notifyStep(step,"failed", result.error, result.elapsed, result.pid,result.threadId,result.start,result.end,result.log,feedbackQueue)
                             raise Exception(result.error)
                         else:
                             self.__updateStep(step, "success", result.error, result.elapsed,result.pid,result.threadId,result.start,result.end,result.log)
+                            self.__notifyStep(step,"success", result.error, result.elapsed,result.pid,result.threadId,result.start,result.end,result.log,feedbackQueue)
                 else:
                     self.__updateStep(step, "skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"")
+                    self.__notifyStep(step,"skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"",feedbackQueue)
                     raise Exception(f"Could not find matching step definition for: {step['keyword']}{step['text']}")
                     
         finally:
@@ -161,6 +198,39 @@ class Scenario:
             step["start"] = start
             step["end"] = end
             step["log"] = log
+    
+    def __notifyStep(self, step: Any,status: str,error: str, elapsed: int, pid: int,threadId: int,start: Any, end: Any, log: str, feedbackQueue: multiprocessing.Queue):
+        try:
+            msg = asdict(StepFeedback(
+                threadId=threadId,
+                elapsed=elapsed,
+                endTime=start,
+                pid=pid,
+                startTime=end,
+                status=status,
+                error=error,
+                log=log,
+                column=step["location"]["column"],
+                line=step["location"]["line"],
+                keyword=step["keyword"],
+                text=step["text"],
+                scenario=ScenarioInfo(
+                    name=self.gherkinScenario["name"],
+                    column=self.gherkinScenario["location"]["column"],
+                    line=self.gherkinScenario["location"]["line"],
+                    description=self.gherkinScenario["description"],
+                    tags=[t["name"] for t in self.gherkinScenario["tags"]],
+                    numberOfSteps=len(self.gherkinScenario["steps"])
+                ),
+                feature=FeatureInfo(
+                    description=self.gherkinFeature["description"],
+                    name=self.gherkinFeature["name"],
+                    tags=[t["name"] for t in self.gherkinFeature["tags"]]
+                )
+            ))
+            feedbackQueue.put_nowait(msg)
+        except:
+            pass
 
     def __addStepToWorkerPool(self, step):
         with self.lock:
@@ -179,14 +249,15 @@ class Scenario:
             steps, self.workerQueue = self.workerQueue, []
         return steps
 
-    def runWorkerThread(self, taskList):
+    def runWorkerThread(self, taskList, feedbackQueue):
         futures = {}
         for step in taskList:
             func,match = Step.getStep(step['text'])
             if func:
-                futures[self.pool.submit(func, self.logger, self.world,match)] = step
+                futures[self.pool.submit(func, self.logger, self.world,match,step,self.gherkinScenario,self.gherkinFeature,feedbackQueue)] = step
             else:
                 self.__updateStep(step, "skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"")
+                self.__notifyStep(step,"skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"",feedbackQueue)
         
         self.logger.log(f"add steps for concurrent executions: {[t['keyword']+t['text'] for t in futures.values()]}")
 
@@ -208,8 +279,10 @@ class Scenario:
                         self.stepsError[fut["keyword"]+fut["text"]] = result.error
                         self.logger.error(f"failed: {result.error}")
                         self.__updateStep(fut,"failed",result.error,result.elapsed,result.pid,result.threadId,result.start,result.end,result.log)
+                        self.__notifyStep(fut,"failed",result.error,result.elapsed,result.pid,result.threadId,result.start,result.end,result.log,feedbackQueue)
                     else:
                         self.__updateStep(fut,"success",None,result.elapsed,result.pid,result.threadId,result.start,result.end,result.log)
+                        self.__notifyStep(fut,"success",None,result.elapsed,result.pid,result.threadId,result.start,result.end,result.log,feedbackQueue)
                     
                     self.logger.log(f"completed step: {fut['keyword']} {fut['text']}")
             nextSteps = self.__getNextSteps()
@@ -217,9 +290,10 @@ class Scenario:
                 func,match = Step.getStep(step['text'])
                 if func:
                     self.logger.log(f"add concurrent step for execution: {step['text']}")
-                    futures[self.pool.submit(func, self.logger, self.world,match)] = step
+                    futures[self.pool.submit(func, self.logger, self.world,match,step,self.gherkinScenario,self.gherkinFeature,feedbackQueue)] = step
                 else:
                     self.__updateStep(step, "skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"")
+                    self.__notifyStep(step,"skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"",feedbackQueue)
             if not futures and self.stopWorker:
                 # To avoid scenarios where we have only concurrent steps remaining in the queue and the scenario has no more steps
                 # to execute. Then the main thread will set the variable stopWorker to True, but this thread has not gotten a chance
@@ -230,9 +304,10 @@ class Scenario:
                     func,match = Step.getStep(step['text'])
                     if func:
                         self.logger.log(f"add concurrent step for execution: {step['text']}")
-                        futures[self.pool.submit(func, self.logger, self.world,match)] = step
+                        futures[self.pool.submit(func, self.logger, self.world,match,step,self.gherkinScenario,self.gherkinFeature,feedbackQueue)] = step
                     else:
                         self.__updateStep(step, "skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"")
+                        self.__notifyStep(step,"skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"",feedbackQueue)
                 if not futures:
                     break
     

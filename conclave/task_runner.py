@@ -5,12 +5,20 @@ from typing import Any, Optional, Union
 from gherkin.token_scanner import TokenScanner
 from gherkin.parser import Parser
 
-from conclave.report import Report
+from .feedback_adapter import FeedbackAdapter
+
+from .scenario_result import ScenarioResult
+from .feedback_schema import FeatureInfo, ScenarioFeedback
+import inspect
+from .helpers import excludeKeys
+
+from .report import Report
 
 from .testresult_info import TestResultInfo
 
 from .timeline import Timeline
 from .task import Task
+from .scenario_context import ScenarioContext
 import threading
 import concurrent
 from .color import bcolors
@@ -27,6 +35,8 @@ import time
 import signal
 from .task_monitor import TaskMonitor
 from .task_runner_config import TaskRunnerConfig
+from .feedback import Feedback
+from dataclasses import asdict
 
 Dialect.concurrent_keywords = concurrent_keywords
 TokenMatcher.match_StepLine = match_stepline
@@ -48,6 +58,7 @@ class TaskRunner:
         self.testResult: TestResultInfo = None
         self.timeout = timeout
         self.taskMonitor = TaskMonitor()
+        self.feedback = Feedback()
 
     def run(self, options: Union[list[str],TaskRunnerConfig]) -> TestResultInfo:
         
@@ -65,6 +76,7 @@ class TaskRunner:
         startDate = datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 
         self.taskMonitor.start()
+        self.feedback.startFeedback()
 
         ## run any setup tasks
         error = self.__runSetupTasks()
@@ -100,6 +112,8 @@ class TaskRunner:
             pid=os.getpid(),
             success=len(list(filter(lambda x: "failed" in x["status"], self.taskReport))) <= 0
         )
+
+        self.feedback.stopFeedback()
 
         return self.testResult
 
@@ -260,9 +274,9 @@ class TaskRunner:
         futures = {}
         for task in tasks_to_submit:
             if task.isConcurrent:
-                futures[self.pool.submit(task.scenario.run,queue=None)] = task
+                futures[self.pool.submit(task.scenario.run,queue=None, feedbackQueue=self.feedback.messageQueue,context=self.__scenarioContextFromTask(task))] = task
             elif task.isParallel:
-                futures[self.parallelPool.submit(task.scenario.run,queue=self.taskMonitor.signalQueue)] = task
+                futures[self.parallelPool.submit(task.scenario.run,queue=self.taskMonitor.signalQueue,feedbackQueue=self.feedback.messageQueue,context=self.__scenarioContextFromTask(task))] = task
         
         
         self.__print(f"adding new tasks: {[(f'name: {t.name}',f'id:{t.id}') for t in tasks_to_submit]}")
@@ -298,10 +312,10 @@ class TaskRunner:
                     for t in next_tasks:
                         self.__print(f"adding new task (name:{t.name},id:{t.id})")
                         if t.isConcurrent:
-                            item = self.pool.submit(t.scenario.run,queue=None)
+                            item = self.pool.submit(t.scenario.run,queue=None,feedbackQueue=self.feedback.messageQueue,context=self.__scenarioContextFromTask(t))
                             futures[item] = t
                         elif t.isParallel:
-                            item = self.parallelPool.submit(t.scenario.run,queue=self.taskMonitor.signalQueue)
+                            item = self.parallelPool.submit(t.scenario.run,queue=self.taskMonitor.signalQueue,feedbackQueue=self.feedback.messageQueue,context=self.__scenarioContextFromTask(t))
                             futures[item] = t
                 self.__print(f"remaining tasks in pool: {[(f'name: {t.name}',f'id:{t.id}') for t in futures.values()]}")
     
@@ -335,7 +349,16 @@ class TaskRunner:
                             if "error" in step and step['error'] is not None:
                                 print(f"\t\t{bcolors.FAIL}{step['error']}{bcolors.ENDC}")
 
-                    
+
+    def __scenarioContextFromTask(self,task: Task):
+        data = excludeKeys(asdict(task),["name","scenario","feature"])
+        return ScenarioContext(
+            **{
+                key: (data[key] if val.default == val.empty else data.get(key, val.default))
+                for key, val in inspect.signature(ScenarioContext).parameters.items()
+            }
+        )
+                        
     
     def __print(self,msg: str):
         if self.debugMode:
@@ -353,6 +376,7 @@ class TaskRunner:
     def __addTaskToReport(self, task: Task, status: str, error: str, elapsed: float, scenarioResult: Any):
         if not any(task.name == x["name"] and task.feature["name"] == x["feature"] for x in self.taskReport):
             self.taskReport.append({"name":task.name,"status":status,"error":error, "elapsed": elapsed, "id": task.id, "feature": task.feature["name"], "task": task, "scenario": scenarioResult})
+            self.feedback.notify(asdict(self.__feedbackSchemaFromTaskResult(task,scenarioResult,status,error,elapsed)))
 
     def __runMainTasks(self):
         return self.__runTasks(self.mainTasks)
@@ -390,6 +414,35 @@ class TaskRunner:
         
         return error
     
+    def __feedbackSchemaFromTaskResult(self,task: Task, scenarioResult: ScenarioResult,status: str, error: str, elapsed: float):
+        obj = ScenarioFeedback()
+        taskDict = asdict(task)
+        feedDict = asdict(obj)
+        obj = ScenarioFeedback(**{k:(taskDict[k] if k in taskDict else v) for k,v in feedDict.items()})
+        obj.status = status
+        obj.error = error
+        obj.elapsed = elapsed
+        if scenarioResult:
+            obj.threadId = scenarioResult.threadId
+            obj.pid = scenarioResult.pid
+            obj.name = scenarioResult.scenario["name"]
+            obj.column = scenarioResult.scenario["location"]["column"]
+            obj.line = scenarioResult.scenario["location"]["line"]
+            obj.tags = [t["name"] for t in scenarioResult.scenario["tags"]]
+            obj.description = scenarioResult.scenario["description"]
+            obj.numberOfSteps = len(scenarioResult.scenario["steps"])
+            if scenarioResult.startTime:
+                obj.startTime = scenarioResult.startTime
+            if scenarioResult.endTime:
+                obj.endTime = scenarioResult.endTime
+        if task.feature:
+            obj.featureInfo = FeatureInfo(
+                description=task.feature["description"],
+                name=task.feature["name"],
+                tags=[t["name"] for t in task.feature["tags"]]
+            )
+        return obj
+    
     def generateTimeline(self):
         timeline = Timeline()
         timeline.generateTimeline(self.taskReport)
@@ -401,5 +454,8 @@ class TaskRunner:
     def generateReport(self):
         report = Report()
         report.generateReport(self.taskReport, self.testResult)
+    
+    def registerFeedbackAdapter(self,adapter: FeedbackAdapter):
+        self.feedback.addAdapter(adapter)
     
 

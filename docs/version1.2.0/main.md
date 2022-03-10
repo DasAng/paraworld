@@ -1,6 +1,6 @@
 # Paraworld
 
-*`This is the documentation for **Version 1.2.0**`*
+*`This is the documentation for Version 1.2.0`*
 
 **Paraworld** is a BDD framework using the Gherkin language for writing automated tests. The framework is written in Python 3.9.
 It is created to allow the ease of writing concurrent and parallel scenarios.

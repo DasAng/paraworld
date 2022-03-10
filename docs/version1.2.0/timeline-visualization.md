@@ -1,6 +1,6 @@
 # Timeline visualization
 
-*`This is the documentation for **Version 1.2.0**`*
+*`This is the documentation for Version 1.2.0`*
 
 **paraworld** can visualize the flow of execution as a timeline graph. This is helpful in understanding how long each scenario takes to execute and when they are being executed in time as well as understanding the concurrency and parallelization part of the execution flow.
 

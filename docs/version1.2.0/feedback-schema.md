@@ -1,6 +1,6 @@
 # Feedback schema
 
-*`This is the documentation for **Version 1.2.0**`*
+*`This is the documentation for Version 1.2.0`*
 
 Feedback system is being introduced in version 1.2.0 and allows the execution flow to notify whenever a scenario or step has started and completed.
 

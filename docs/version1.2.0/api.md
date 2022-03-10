@@ -1,6 +1,6 @@
 # API Reference
 
-*`This is the documentation for **Version 1.2.0**`*
+*`This is the documentation for Version 1.2.0`*
 
 **Table of contents**
 

@@ -1,6 +1,6 @@
 # Report visualization
 
-*`This is the documentation for **Version 1.2.0**`*
+*`This is the documentation for Version 1.2.0`*
 
 **paraworld** can produce a custom HTML report of the execution that will display all the features, scenarios and steps being executed.
 

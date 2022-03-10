@@ -1,6 +1,6 @@
 # Dependency graph
 
-*`This is the documentation for **Version 1.2.0**`*
+*`This is the documentation for Version 1.2.0`*
 
 **paraworld** can visualize a dependency graph of all the scenarios in all features. This is useful in understanding which scenario depends on which as well as grouping of scenarios and their dependencies.
 

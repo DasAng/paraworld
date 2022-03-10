@@ -1,6 +1,6 @@
 # Steps
 
-*`This is the documentation for **Version 1.2.0**`*
+*`This is the documentation for Version 1.2.0`*
 
 **paraworld** supports the following custom keywords that can be applied for steps that will change how the steps are being executed.
 

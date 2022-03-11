@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.2.0] - 2022-03-10
+
+### Added
+
+- Feedback system that allows you to be notified whenever a scenario or steps starts and completes
+
 ## [1.1.2] - 2022-03-05
 
 ### Fixed

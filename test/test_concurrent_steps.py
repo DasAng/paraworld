@@ -2,6 +2,7 @@ import time
 import sys
 import os
 from typing import Match
+from conclave.feedback_adapter import NullFeedbackAdapter
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 from conclave.task_runner import TaskRunner
 from conclave.step import Step
@@ -29,6 +30,7 @@ if __name__ == '__main__':
     mon = Monitor()
     mon.startMonitor()
     tr = TaskRunner(debugMode=True)
+    tr.registerFeedbackAdapter(NullFeedbackAdapter())
     testResult = tr.run(["concurrent_steps.feature"])
 
     print("\nprogram elapsed time :", testResult.elapsed)

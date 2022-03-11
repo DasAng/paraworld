@@ -2,14 +2,14 @@ Feature: Concurrent steps
 
     Test concurrent steps
     
-    @parallell
+    @parallel
     Scenario: multiple concurrent steps interleaved
         Then step1
         Concurrently step2
         Then step1
         Concurrently step2
     
-    @parallell
+    @parallel
     Scenario: multiple concurrent steps only
         Concurrently step2
         (background) Then step2

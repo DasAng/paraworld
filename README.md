@@ -5,19 +5,20 @@ It is created to allow the ease of writing concurrent and parallel scenarios.
 
 The framework supports the following distinct features:
 
-- [Run scenarios concurrently](docs/version1.1.0/dependency-graph.md#concurrent-scenarios)
-- [Run scenarios in parallel](docs/version1.1.0/dependency-graph.md#parallel-scenarios)
-- [Run steps concurrently](docs/version1.1.0/dependency-graph.md#concurrent-steps)
-- [Apply ordering and dependency for scenarios](docs/version1.1.0/dependency-graph.md#dependency)
-- [Timeline visualization](docs/version1.1.0/dependency-graph.md#timeline-visualization)
-- [Dependency visualization](docs/version1.1.0/dependency-graph.md#dependency-graph)
-- [Report visualization](docs/version1.1.0/dependency-graph.md#report-visualization)
+- [Run scenarios concurrently](docs/version1.2.0/dependency-graph.md#concurrent-scenarios)
+- [Run scenarios in parallel](docs/version1.2.0/dependency-graph.md#parallel-scenarios)
+- [Run steps concurrently](docs/version1.2.0/dependency-graph.md#concurrent-steps)
+- [Apply ordering and dependency for scenarios](docs/version1.2.0/dependency-graph.md#dependency)
+- [Timeline visualization](docs/version1.2.0/dependency-graph.md#timeline-visualization)
+- [Dependency visualization](docs/version1.2.0/dependency-graph.md#dependency-graph)
+- [Report visualization](docs/version1.2.0/dependency-graph.md#report-visualization)
 
 # Table of contents
 
 
 - [Install](#install)
 - [Documentation](#documentation)
+- [Feature matrix](#feature-matrix)
 - [Development](#development)
   - [virtual environment](#virtual-environment)
   - [build](#build)
@@ -37,12 +38,28 @@ pip install paraworld
 
 Below is the documentation for all the versions.
 
+- [Version 1.2.0](docs/version1.2.0/main.md#paraworld)
 - [Version 1.1.2](docs/version1.1.2/main.md#paraworld)
 - [Version 1.1.1](docs/version1.1.1/main.md#paraworld)
 - [Version 1.1.0](docs/version1.1.0/main.md#paraworld)
 - [Version 1.0.0](docs/version1.0.0/main.md#paraworld)
 
 See the [changelog](CHANGELOG.md) for changes.
+
+# Feature matrix
+
+The following table shows the features available in which versions:
+
+| Feature         | Version | Description |
+|--------------|:-----:|-----------:|
+| Parallel scenarios      |  1.0.0 > |          Support running scenarios simultaneously in another process |
+| Concurrent scenarios      |  1.0.0 > |          Support running scenarios simultaneously in another thread |
+| Concurrent steps      |  1.0.0 > |          Support running steps simultaneously in another thread |
+| Scenario dependency      |  1.0.0 > |          Support order of execution based on dependent scenarios |
+| Scenario groups      |  1.0.0 > |          Support having scenarios in groups to allow for group dependency |
+| Filter scenarios based on tags |  1.1.0 > |        Support only running scenarios based on tags |
+| Specifying a directory to run feature files from |  1.1.0 > |        Support recursively run all feature files in a directory |
+| Feedback system |  1.2.0 > |        Allows notification to be sent during execution flow |
 
 # Development
 

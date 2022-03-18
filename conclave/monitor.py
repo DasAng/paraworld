@@ -44,7 +44,6 @@ def getCpuUsageByPid(p: Process):
 def runMonitor(q: multiprocessing.Queue):
     fileName = f"monitor.txt"
     selfPid = os.getpid()
-    print(f"monitor process running: {selfPid}")
     procList = {}
     while True:
         time.sleep(1)
@@ -62,7 +61,6 @@ def runMonitor(q: multiprocessing.Queue):
         writeDataPoints(datapoint, fileName)
         try:
             msg = q.get(block=False)
-            print(f"got termination signal. Exit monitor now")
             break
         except queue.Empty:
             pass

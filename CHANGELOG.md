@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.3.0] - 2022-03-18
+
+### Added
+
+- Support generating JUnit XML report
+
 ## [1.2.0] - 2022-03-10
 
 ### Added

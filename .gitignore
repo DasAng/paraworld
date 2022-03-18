@@ -6,6 +6,7 @@ monitor_output.html
 monitor.txt
 dependency_output.html
 report_output.html
+junit_output.xml
 node_modules
 report/dist
 

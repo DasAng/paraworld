@@ -18,7 +18,6 @@ class Feedback:
 
     def runFeedback(self,q: multiprocessing.Queue):
         selfPid = os.getpid()
-        print(f"feedback process running: {selfPid}")
         while True:
             try:
                 msg = q.get(block=True)

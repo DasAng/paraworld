@@ -5,6 +5,8 @@ from typing import Any, Optional, Union
 from gherkin.token_scanner import TokenScanner
 from gherkin.parser import Parser
 
+from .junit_report import JUnitReport
+
 from .feedback_adapter import FeedbackAdapter
 
 from .scenario_result import ScenarioResult
@@ -457,5 +459,9 @@ class TaskRunner:
     
     def registerFeedbackAdapter(self,adapter: FeedbackAdapter):
         self.feedback.addAdapter(adapter)
+    
+    def generateJUnitReport(self):
+        report = JUnitReport()
+        report.generateReport(self.taskReport,self.testResult)
     
 

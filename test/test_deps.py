@@ -24,6 +24,7 @@ if __name__ == '__main__':
     tr.generateTimeline()
     tr.generateDependencyGraph()
     tr.generateReport()
+    tr.generateJUnitReport()
 
     if not testResult.success:
         print(f"Test failed")

@@ -5,13 +5,13 @@ It is created to allow the ease of writing concurrent and parallel scenarios.
 
 The framework supports the following distinct features:
 
-- [Run scenarios concurrently](docs/version1.3.0/dependency-graph.md#concurrent-scenarios)
-- [Run scenarios in parallel](docs/version1.3.0/dependency-graph.md#parallel-scenarios)
-- [Run steps concurrently](docs/version1.3.0/dependency-graph.md#concurrent-steps)
-- [Apply ordering and dependency for scenarios](docs/version1.3.0/dependency-graph.md#dependency)
-- [Timeline visualization](docs/version1.3.0/dependency-graph.md#timeline-visualization)
-- [Dependency visualization](docs/version1.3.0/dependency-graph.md#dependency-graph)
-- [Report visualization](docs/version1.3.0/dependency-graph.md#report-visualization)
+- [Run scenarios concurrently](docs/version1.4.0/dependency-graph.md#concurrent-scenarios)
+- [Run scenarios in parallel](docs/version1.4.0/dependency-graph.md#parallel-scenarios)
+- [Run steps concurrently](docs/version1.4.0/dependency-graph.md#concurrent-steps)
+- [Apply ordering and dependency for scenarios](docs/version1.4.0/dependency-graph.md#dependency)
+- [Timeline visualization](docs/version1.4.0/dependency-graph.md#timeline-visualization)
+- [Dependency visualization](docs/version1.4.0/dependency-graph.md#dependency-graph)
+- [Report visualization](docs/version1.4.0/dependency-graph.md#report-visualization)
 
 # Table of contents
 
@@ -38,6 +38,7 @@ pip install paraworld
 
 Below is the documentation for all the versions.
 
+- [Version 1.4.0](docs/version1.4.0/main.md#paraworld)
 - [Version 1.3.0](docs/version1.3.0/main.md#paraworld)
 - [Version 1.2.0](docs/version1.2.0/main.md#paraworld)
 - [Version 1.1.2](docs/version1.1.2/main.md#paraworld)

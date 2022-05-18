@@ -4,12 +4,9 @@ from dataclasses import asdict
 import multiprocessing
 from typing import Any
 from datetime import datetime
-
 from .feedback_schema import FeatureInfo, ScenarioFeedback, ScenarioInfo, StepFeedback
-
 from .scenario_result import ScenarioResult
 from .scenario_context import ScenarioContext
-
 from .task_logger import TaskLogger
 import traceback
 import time
@@ -17,6 +14,8 @@ import os
 import threading
 from .step import Step
 from .world import World
+from .before_scenario import BeforeScenario
+from .after_scenario import AfterScenario
 
 class Scenario:
 
@@ -160,6 +159,8 @@ class Scenario:
                 workerThread = threading.Thread(target=self.runWorkerThread,kwargs={'taskList':[],'feedbackQueue': feedbackQueue})
                 workerThread.start()
 
+            self.runBeforeScenarios()
+
             for step in allSteps:
                 exc = None
                 self.logger.log(f"execute step: {step['keyword']} {step['text']}")
@@ -186,6 +187,7 @@ class Scenario:
             self.stopWorker = True
             if workerThread is not None:
                 workerThread.join()
+            self.runAfterScenarios()
     
     def __updateStep(self, step: Any, status: str,error: str, elapsed: int, pid: int,threadId: int,start: Any, end: Any, log: str):
         item = next((x for x in self.steps if x['id'] == step['id']), None)
@@ -321,4 +323,20 @@ class Scenario:
         self.__dict__.update(state)
         self.pool = ThreadPoolExecutor()
         self.lock = threading.Lock()
+    
+    def runAfterScenarios(self):
+        sc = AfterScenario.getMethods()
+        if sc:
+            for bf in sc:
+                result = bf(self.logger, self.world)
+                if result.error:
+                    self.logger.error(result.error)
+    
+    def runBeforeScenarios(self):
+        sc = BeforeScenario.getMethods()
+        if sc:
+            for bf in sc:
+                result = bf(self.logger, self.world)
+                if result.error:
+                    raise Exception(result.error)
              

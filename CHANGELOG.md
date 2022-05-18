@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.5.0] - 2022-05-18
+
+### Breaking changes
+
+- All step functions now requires an additional parameter named context of type ScenarioScope
+- Context parameter allows for accessing and setting custom data that exists only in the current scenario
+
 ## [1.4.0] - 2022-05-18
 
 ### Added

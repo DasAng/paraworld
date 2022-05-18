@@ -10,15 +10,16 @@ import multiprocessing
 from conclave.monitor import Monitor
 from conclave.task_runner import TaskRunner
 from conclave.task_logger import TaskLogger
+from conclave.scenario_scope import ScenarioScope
 
 @Step(pattern="^step 1$")
-def step1(logger: TaskLogger, world: World,match: Match[str]):
+def step1(logger: TaskLogger, world: World,match: Match[str], context: ScenarioScope):
     logger.log(f"step 1")
     world.setProp("itemA","hello")
     time.sleep(10)
 
 @Step(pattern="^step 2$")
-def step2(logger: TaskLogger, world: World,match: Match[str]):
+def step2(logger: TaskLogger, world: World,match: Match[str], context: ScenarioScope):
     logger.log(f"step 1")
     value = world.getProp("itemA")
     logger.log(f"itemA: {value}")

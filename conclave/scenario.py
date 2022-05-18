@@ -16,6 +16,7 @@ from .step import Step
 from .world import World
 from .before_scenario import BeforeScenario
 from .after_scenario import AfterScenario
+from .scenario_scope import ScenarioScope
 
 class Scenario:
 
@@ -39,6 +40,7 @@ class Scenario:
         self.stepsError = {}
         self.result = ScenarioResult(scenario=self.gherkinScenario,id=self.id,steps=self.steps,threadId=None,pid=None,startTime=None,endTime=None)
         self.context = None
+        self.scenarioScope = ScenarioScope()
 
     def run(self, queue: multiprocessing.Queue, feedbackQueue: multiprocessing.Queue, context: ScenarioContext):
         """
@@ -170,7 +172,7 @@ class Scenario:
                         self.logger.log(f"add step to worker queue: {step['keyword']} {step['text']}")
                         self.__addStepToWorkerPool(step)
                     else:
-                        result = func(self.logger,self.world,match,step,self.gherkinScenario,self.gherkinFeature,feedbackQueue)
+                        result = func(self.logger,self.world,match,step,self.gherkinScenario,self.gherkinFeature,self.scenarioScope,feedbackQueue)
                         if result.error:
                             self.__updateStep(step, "failed", result.error, result.elapsed, result.pid,result.threadId,result.start,result.end,result.log)
                             self.__notifyStep(step,"failed", result.error, result.elapsed, result.pid,result.threadId,result.start,result.end,result.log,feedbackQueue)
@@ -256,7 +258,7 @@ class Scenario:
         for step in taskList:
             func,match = Step.getStep(step['text'])
             if func:
-                futures[self.pool.submit(func, self.logger, self.world,match,step,self.gherkinScenario,self.gherkinFeature,feedbackQueue)] = step
+                futures[self.pool.submit(func, self.logger, self.world,match,step,self.gherkinScenario,self.gherkinFeature,self.scenarioScope,feedbackQueue)] = step
             else:
                 self.__updateStep(step, "skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"")
                 self.__notifyStep(step,"skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"",feedbackQueue)
@@ -292,7 +294,7 @@ class Scenario:
                 func,match = Step.getStep(step['text'])
                 if func:
                     self.logger.log(f"add concurrent step for execution: {step['text']}")
-                    futures[self.pool.submit(func, self.logger, self.world,match,step,self.gherkinScenario,self.gherkinFeature,feedbackQueue)] = step
+                    futures[self.pool.submit(func, self.logger, self.world,match,step,self.gherkinScenario,self.gherkinFeature,self.scenarioScope,feedbackQueue)] = step
                 else:
                     self.__updateStep(step, "skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"")
                     self.__notifyStep(step,"skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"",feedbackQueue)
@@ -306,7 +308,7 @@ class Scenario:
                     func,match = Step.getStep(step['text'])
                     if func:
                         self.logger.log(f"add concurrent step for execution: {step['text']}")
-                        futures[self.pool.submit(func, self.logger, self.world,match,step,self.gherkinScenario,self.gherkinFeature,feedbackQueue)] = step
+                        futures[self.pool.submit(func, self.logger, self.world,match,step,self.gherkinScenario,self.gherkinFeature,self.scenarioScope,feedbackQueue)] = step
                     else:
                         self.__updateStep(step, "skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"")
                         self.__notifyStep(step,"skipped", f"Could not find matching step definition for: {step['keyword']}{step['text']}",0.0,None,None,None,None,"",feedbackQueue)
@@ -328,15 +330,15 @@ class Scenario:
         sc = AfterScenario.getMethods()
         if sc:
             for bf in sc:
-                result = bf(self.logger, self.world)
+                result = bf(self.logger, self.world, self.scenarioScope)
                 if result.error:
-                    self.logger.error(result.error)
+                    raise Exception(result.error)
     
     def runBeforeScenarios(self):
         sc = BeforeScenario.getMethods()
         if sc:
             for bf in sc:
-                result = bf(self.logger, self.world)
+                result = bf(self.logger, self.world, self.scenarioScope)
                 if result.error:
                     raise Exception(result.error)
              

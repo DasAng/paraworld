@@ -8,9 +8,10 @@ from conclave.step import Step
 from conclave.world import World
 from conclave.task_runner import TaskRunner
 from conclave.task_logger import TaskLogger
+from conclave.scenario_scope import ScenarioScope
 
 @Step(pattern="^step 1$")
-def func1(logger: TaskLogger, world: World,match: Match[str]):
+def func1(logger: TaskLogger, world: World,match: Match[str], context: ScenarioScope):
     logger.log(f"func1 called")
 
 if __name__ == '__main__':

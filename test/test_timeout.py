@@ -10,9 +10,10 @@ import multiprocessing
 from conclave.monitor import Monitor
 from conclave.task_runner import TaskRunner
 from conclave.task_logger import TaskLogger
+from conclave.scenario_scope import ScenarioScope
 
 @Step(pattern="^run for long time$")
-def longRunningStep(logger: TaskLogger, world: World,match: Match[str]):
+def longRunningStep(logger: TaskLogger, world: World,match: Match[str], context: ScenarioScope):
     logger.log(f"long running step")
     time.sleep(3)
 

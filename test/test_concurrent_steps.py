@@ -12,15 +12,16 @@ from conclave.monitor import Monitor
 from conclave.task_runner import TaskRunner
 from conclave.task_logger import TaskLogger
 from conclave.monitor import Monitor
+from conclave.scenario_scope import ScenarioScope
 
 @Step(pattern="^step1$")
-def step1(logger: TaskLogger, world: World,match: Match[str]):
+def step1(logger: TaskLogger, world: World,match: Match[str], context: ScenarioScope):
     logger.log(f"step1 called")
     time.sleep(1)
     #raise Exception("step1 exception")
 
 @Step(pattern="^step2$")
-def step2(logger: TaskLogger, world: World,match: Match[str]):
+def step2(logger: TaskLogger, world: World,match: Match[str], context: ScenarioScope):
     logger.log(f"step2 called")
     time.sleep(2)
     

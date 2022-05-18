@@ -5,7 +5,6 @@ from conclave.task_runner import TaskRunner
 from conclave.step import Step
 from conclave.world import World
 import multiprocessing
-
 from conclave.task_runner import TaskRunner
 
 if __name__ == '__main__':

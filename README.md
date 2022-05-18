@@ -62,6 +62,7 @@ The following table shows the features available in which versions:
 | Specifying a directory to run feature files from |  1.1.0 > |        Support recursively run all feature files in a directory |
 | Feedback system |  1.2.0 > |        Allows notification to be sent during execution flow |
 | JUnit XML report |  1.3.0 > |        Support generating JUnit XML report |
+| Before and After scenarios |  1.4.0 > |        Support methods to be run before and after scenarios |
 
 # Development
 

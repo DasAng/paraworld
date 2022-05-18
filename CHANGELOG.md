@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.4.0] - 2022-05-18
+
+### Added
+
+- Before scenario and After scenario steps to be executed
+
 ## [1.3.0] - 2022-03-18
 
 ### Added

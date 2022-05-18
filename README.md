@@ -169,7 +169,7 @@ python test_local_build.py
 Before publishing to PyPI you can upload to TestPyPI for testing the package:
 
 ```shell
-twine upload --repository testpypi dist/*
+python -m twine upload --repository testpypi dist/*
 ``` 
 
 This will upload whatever is in the **dist** folder to TestPyPI.

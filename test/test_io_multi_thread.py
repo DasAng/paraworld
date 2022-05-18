@@ -11,9 +11,10 @@ from conclave.monitor import Monitor
 from conclave.task_runner import TaskRunner
 from conclave.task_logger import TaskLogger
 import requests
+from conclave.scenario_scope import ScenarioScope
 
 @Step(pattern="^call api$")
-def callApi(logger: TaskLogger, world: World,match: Match[str]):
+def callApi(logger: TaskLogger, world: World,match: Match[str], context: ScenarioScope):
     logger.log(f"callApi called")
     x = requests.get('https://httpbin.org/delay/2')
     logger.log(f"response: {x}")

@@ -44,11 +44,14 @@ class Step:
             gherkinStep = newargs[3]
             gherkinScenario = newargs[4]
             gherkinFeature = newargs[5]
+            scenarioScope = newargs[6]
             feedbackQueue = newargs[-1]
             newargs.pop()
             newargs.pop()
             newargs.pop()
             newargs.pop()
+            newargs.pop()
+            newargs.append(scenarioScope)
             args2 = tuple(newargs)
             try:
                 self.notifyStepStarted(feedbackQueue,start,gherkinStep,gherkinScenario,gherkinFeature)

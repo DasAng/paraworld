@@ -1,3 +1,4 @@
+from random import randint
 import time
 import sys
 import os
@@ -11,20 +12,24 @@ from conclave.world import World
 import multiprocessing
 from conclave.task_runner import TaskRunner
 from conclave.task_logger import TaskLogger
+from conclave.scenario_scope import ScenarioScope
 
 @BeforeScenario()
-def before_scenario(logger: TaskLogger, world: World):
+def before_scenario(logger: TaskLogger, world: World, context: ScenarioScope):
     logger.log(f"Before scenario")
-    raise Exception("Force error")
+    context.num = randint(0,100)
+    logger.log(f"context.num: {context.num}")
+    #raise Exception("Force error")
 
 @AfterScenario()
-def after_scenario(logger: TaskLogger, world: World):
+def after_scenario(logger: TaskLogger, world: World, context: ScenarioScope):
     logger.log(f"After scenario")
     raise Exception("Force after error")
 
 @Step(pattern="^step 1$")
-def step1(logger: TaskLogger, world: World,match: Match[str]):
+def step1(logger: TaskLogger, world: World,match: Match[str], context: ScenarioScope):
     logger.log(f"step 1")
+    logger.log(f"context name: {context.num}")
 
 if __name__ == '__main__':
     print(f"cpu count: {multiprocessing.cpu_count()}")
@@ -32,6 +37,8 @@ if __name__ == '__main__':
     testResult = tr.run(["before_scenario.feature"])
 
     print("\nprogram elapsed time :", testResult.elapsed)
+
+    tr.generateReport()
 
     if not testResult.success:
         print(f"Test failed")

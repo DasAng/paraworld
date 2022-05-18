@@ -10,10 +10,10 @@ import multiprocessing
 from conclave.monitor import Monitor
 from conclave.task_runner import TaskRunner
 from conclave.task_logger import TaskLogger
-from conclave.report import Report
+from conclave.scenario_scope import ScenarioScope
 
 @Step(pattern="^calculate pi$")
-def calcPi(logger: TaskLogger, world: World,match: Match[str]):
+def calcPi(logger: TaskLogger, world: World,match: Match[str], context: ScenarioScope):
     logger.log(f"calcPi called")
     pi = 0
     accuracy = 100000

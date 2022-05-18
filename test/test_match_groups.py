@@ -10,9 +10,10 @@ import multiprocessing
 from conclave.monitor import Monitor
 from conclave.task_runner import TaskRunner
 from conclave.task_logger import TaskLogger
+from conclave.scenario_scope import ScenarioScope
 
 @Step(pattern="^match group (.+) and (.+)$")
-def matchGroup(logger: TaskLogger, world: World,match: Match[str]):
+def matchGroup(logger: TaskLogger, world: World,match: Match[str], context: ScenarioScope):
     logger.log(f"matchgroup called")
     group1 = match.group(1)
     group2 = match.group(2)

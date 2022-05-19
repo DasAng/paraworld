@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.6.0] - 2022-05-19
+
+### Changed
+
+- Method to generate reports, junit, dependency and timeline files now supports specifying the name and location of the file
+
 ## [1.5.0] - 2022-05-18
 
 ### Breaking changes

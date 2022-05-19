@@ -38,7 +38,10 @@ if __name__ == '__main__':
 
     print("\nprogram elapsed time :", testResult.elapsed)
 
-    tr.generateReport()
+    tr.generateReport("reports/report_output.html")
+    tr.generateTimeline("reports/timeline_output.html")
+    tr.generateJUnitReport("reports/junit_output.xml")
+    tr.generateDependencyGraph("reports/dependency_output.html")
 
     if not testResult.success:
         print(f"Test failed")

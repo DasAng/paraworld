@@ -18,7 +18,7 @@ class Report(TemplateBase):
     def __init__(self) -> None:
         pass
 
-    def generateReport(self, taskReport: Any, testResult: TestResultInfo):
+    def generateReport(self, taskReport: Any, testResult: TestResultInfo, outputFilename="report_output.html"):
         templateFileName = "report.html"
         env = Environment(loader=FileSystemLoader(os.path.dirname(__file__)))
         jsContent = self.getTemplatePropertyContent('report.min.js')
@@ -54,4 +54,7 @@ class Report(TemplateBase):
             testResult=json.dumps(vars(testResult), default=datetimeConverter)
         )
 
-        self.writeTemplateContent("report_output.html",output)
+        dirs = os.path.dirname(outputFilename)
+        if dirs:
+            os.makedirs(os.path.dirname(outputFilename), exist_ok=True)
+        self.writeTemplateContent(outputFilename,output)

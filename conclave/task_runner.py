@@ -445,23 +445,23 @@ class TaskRunner:
             )
         return obj
     
-    def generateTimeline(self):
+    def generateTimeline(self, outputFilename="timeline_output.html"):
         timeline = Timeline()
-        timeline.generateTimeline(self.taskReport)
+        timeline.generateTimeline(self.taskReport, outputFilename)
     
-    def generateDependencyGraph(self):
+    def generateDependencyGraph(self, outputFilename="dependency_output.html"):
         depGraph = DependencyGraph()
-        depGraph.generateGraph("dependency_output.html",self.taskReport,self.groups)
+        depGraph.generateGraph(outputFilename,self.taskReport,self.groups)
     
-    def generateReport(self):
+    def generateReport(self, outputFilename="report_output.html"):
         report = Report()
-        report.generateReport(self.taskReport, self.testResult)
+        report.generateReport(self.taskReport, self.testResult, outputFilename)
     
     def registerFeedbackAdapter(self,adapter: FeedbackAdapter):
         self.feedback.addAdapter(adapter)
     
-    def generateJUnitReport(self):
+    def generateJUnitReport(self, outputFilename="junit_output.xml"):
         report = JUnitReport()
-        report.generateReport(self.taskReport,self.testResult)
+        report.generateReport(self.taskReport,self.testResult, outputFilename)
     
 

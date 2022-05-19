@@ -5,13 +5,13 @@ It is created to allow the ease of writing concurrent and parallel scenarios.
 
 The framework supports the following distinct features:
 
-- [Run scenarios concurrently](docs/version1.5.0/dependency-graph.md#concurrent-scenarios)
-- [Run scenarios in parallel](docs/version1.5.0/dependency-graph.md#parallel-scenarios)
-- [Run steps concurrently](docs/version1.5.0/dependency-graph.md#concurrent-steps)
-- [Apply ordering and dependency for scenarios](docs/version1.5.0/dependency-graph.md#dependency)
-- [Timeline visualization](docs/version1.5.0/dependency-graph.md#timeline-visualization)
-- [Dependency visualization](docs/version1.5.0/dependency-graph.md#dependency-graph)
-- [Report visualization](docs/version1.5.0/dependency-graph.md#report-visualization)
+- [Run scenarios concurrently](docs/version1.6.0/dependency-graph.md#concurrent-scenarios)
+- [Run scenarios in parallel](docs/version1.6.0/dependency-graph.md#parallel-scenarios)
+- [Run steps concurrently](docs/version1.6.0/dependency-graph.md#concurrent-steps)
+- [Apply ordering and dependency for scenarios](docs/version1.6.0/dependency-graph.md#dependency)
+- [Timeline visualization](docs/version1.6.0/dependency-graph.md#timeline-visualization)
+- [Dependency visualization](docs/version1.6.0/dependency-graph.md#dependency-graph)
+- [Report visualization](docs/version1.6.0/dependency-graph.md#report-visualization)
 
 # Table of contents
 
@@ -38,6 +38,7 @@ pip install paraworld
 
 Below is the documentation for all the versions.
 
+- [Version 1.6.0](docs/version1.6.0/main.md#paraworld)
 - [Version 1.5.0](docs/version1.5.0/main.md#paraworld)
 - [Version 1.4.0](docs/version1.4.0/main.md#paraworld)
 - [Version 1.3.0](docs/version1.3.0/main.md#paraworld)
@@ -66,6 +67,7 @@ The following table shows the features available in which versions:
 | JUnit XML report |  1.3.0 > |        Support generating JUnit XML report |
 | Before and After scenarios |  1.4.0 > |        Support methods to be run before and after scenarios |
 | Scoped context for scenarios |  1.5.0 > |        BREAKING changes!!! Now all step functions supports retrieving and modifying values in scope of the current scenario |
+| Support different filepath for generated reports |  1.6.0 > |        Support specifying different filepaths for generated reports, timeline, junit and dependency files |
 
 # Development
 

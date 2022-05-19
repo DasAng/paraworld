@@ -42,5 +42,8 @@ class DependencyGraph(TemplateBase):
             graph=graph
         )
 
+        dirs = os.path.dirname(fileName)
+        if dirs:
+            os.makedirs(os.path.dirname(fileName), exist_ok=True)
         self.writeTemplateContent(fileName,output)
 

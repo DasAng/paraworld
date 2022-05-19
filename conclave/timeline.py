@@ -114,7 +114,7 @@ class Timeline(TemplateBase):
         return item
     
 
-    def generateTimeline(self, taskReport: Any):
+    def generateTimeline(self, taskReport: Any, outputFilename="timeline_output.html"):
         print(f"Generate timeline...")
 
         groups = []
@@ -168,4 +168,7 @@ class Timeline(TemplateBase):
         plistItems=json.dumps(pitems, default=datetimeConverter)
         )
 
-        self.writeTemplateContent("timeline_output.html",output)
+        dirs = os.path.dirname(outputFilename)
+        if dirs:
+            os.makedirs(os.path.dirname(outputFilename), exist_ok=True)
+        self.writeTemplateContent(outputFilename,output)

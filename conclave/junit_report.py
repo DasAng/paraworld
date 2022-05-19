@@ -1,6 +1,6 @@
 from itertools import groupby
 from typing import Any
-
+import os
 from .template_base import TemplateBase
 from .scenario import Scenario
 from .task import Task
@@ -78,7 +78,7 @@ class JUnitReport(TemplateBase):
     def __getAllFailedFeatures(self, features: Any):
         return len(list(filter(lambda f: f['status'] == 'failed', features)))
 
-    def generateReport(self,taskReport: Any, testResult: TestResultInfo):
+    def generateReport(self,taskReport: Any, testResult: TestResultInfo, outputFilename="junit_output.xml"):
         features = []
         for key, group in groupby(sorted(taskReport,key=lambda x:x["feature"]), lambda x: x["feature"]):
             scenarios = []
@@ -128,4 +128,7 @@ class JUnitReport(TemplateBase):
         countFailedFeatures = self.__getAllFailedFeatures(features)
         root.attrib["failures"] = str(countFailedFeatures)
         
-        self.writeTemplateContent("junit_output.xml",ET.tostring(tree.getroot(),encoding='unicode', method='xml'))
+        dirs = os.path.dirname(outputFilename)
+        if dirs:
+            os.makedirs(os.path.dirname(outputFilename), exist_ok=True)
+        self.writeTemplateContent(outputFilename,ET.tostring(tree.getroot(),encoding='unicode', method='xml'))

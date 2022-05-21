@@ -221,7 +221,7 @@ The console output should now look like:
 
 ![](../images/getting_started_run_result_3.png)
 
-We can see from the output that the TaskRunner can now find and match out two steps and they have been executed successfully.
+We can see from the output that the TaskRunner can now find and match our two steps and they have been executed successfully.
 
 ## Implement functionality for step definition
 
@@ -238,7 +238,7 @@ The code for the step definitions are not that interesting since they do nothing
 
 7   @Step(pattern="^call API endpoint (.+)$")
 8   def callAPIendpointStep(logger: TaskLogger, world: World, match: Match[str], context: ScenarioScope):
-8       url = match.group(1)
+9       url = match.group(1)
 10      logger.log(f"Call API: {url}")
 11      resp = requests.get(url)
 12      logger.log(f"response: {resp}")
@@ -253,7 +253,7 @@ The code for the step definitions are not that interesting since they do nothing
 20      logger.log(f"expected status code: {statusCode} SUCCESS")
 ```
 
-Let's go through the code above and explain it. Line 8 we are extracting the url from the regular expression capturing group at index 1. This will give us whatever url the step text has supplied. Line 9 we have used the logger object to print the url to the console. Line 11 is the actual call to the url using HTTP GET. Line 11 we print out the response from the HTTP GET request. And line 13 we are using the world object to store the value of the status code under the key *ApiStatusCode*
+Let's go through the code above and explain it. Line 8 we are extracting the url from the regular expression capturing group at index 1. This will give us whatever url the step text has supplied. Line 10 we have used the logger object to print the url to the console. Line 11 is the actual call to the url using HTTP GET. Line 12 we print out the response from the HTTP GET request. And line 13 we are using the world object to store the value of the status code under the key *ApiStatusCode*
 
 Moving on to the next step definition we have line 16 which will be extracting the expected status code value from the regular expression capturing group at index 1. Line 17 we use the world object to retrieve the real status code value we have stored from the step definition in line 13. Line 18 we compare if the real status code matches the expected status code and if not we will raise an exception. Line 20 we print out that it all matches successfully.
 
@@ -331,6 +331,7 @@ Below are the highlighted features that **paraworld** offers:
 - **Groups**. Gherkin scenarios can be grouped together by using the tag [@group](tags.md#group). This is useful for dependent execution where you want some scenarios to only execute after all scenarios in a given group has completed.
 - **dependency**. You can have scenarios depends on each other by using the tags [@depends](tags.md#depends) or [@dependsGroups](tags.md#dependsgroups) to make sure that scenarios will not be executed before the dependant scenarios or group of scenarios have been completed.
 - **Setup and teardown**. You can have scenarios that should always be executed before all other scenarios by adding the [@setup](tags.md#setup) tag. You can also have scenarios that must be run after all scenarios has completed by adding the [@teardown](tags.md#teardown) tag.
+- **Before and After scenario**. You can define methods that should always be executed before the start of each scenario and also after a scenario completes. This can be achieved using the [@BeforeScennario()](api.md#class-beforescenario) and [@AfterScenario()](api.md#class-afterscenario) decorators.
 
 ## Concurrent scenarios
 
@@ -621,7 +622,7 @@ So setup and teardown features are useful if you need to ensure proper setup of 
 
 You can define methods that should be executed before each scenario starts and after each scenario ends.
 
-To do that you will need to decorate your custom methods with the **@BeforeScenario()** or **@AfterScenario()** decorator.
+To do that you will need to decorate your custom methods with the [@BeforeScennario()](api.md#class-beforescenario) or [@AfterScennario()](api.md#class-afterscenario) decorator.
 
 Your custom methods must also have the following parameters:
 

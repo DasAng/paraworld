@@ -5,13 +5,13 @@ It is created to allow the ease of writing concurrent and parallel scenarios.
 
 The framework supports the following distinct features:
 
-- [Run scenarios concurrently](docs/version1.6.0/dependency-graph.md#concurrent-scenarios)
-- [Run scenarios in parallel](docs/version1.6.0/dependency-graph.md#parallel-scenarios)
-- [Run steps concurrently](docs/version1.6.0/dependency-graph.md#concurrent-steps)
-- [Apply ordering and dependency for scenarios](docs/version1.6.0/dependency-graph.md#dependency)
-- [Timeline visualization](docs/version1.6.0/dependency-graph.md#timeline-visualization)
-- [Dependency visualization](docs/version1.6.0/dependency-graph.md#dependency-graph)
-- [Report visualization](docs/version1.6.0/dependency-graph.md#report-visualization)
+- [Run scenarios concurrently](docs/version1.6.0/main.md#concurrent-scenarios)
+- [Run scenarios in parallel](docs/version1.6.0/main.md#parallel-scenarios)
+- [Run steps concurrently](docs/version1.6.0/main.md#concurrent-steps)
+- [Apply ordering and dependency for scenarios](docs/version1.6.0/main.md#dependency)
+- [Timeline visualization](docs/version1.6.0/main.md#timeline-visualization)
+- [Dependency visualization](docs/version1.6.0/main.md#dependency-graph)
+- [Report visualization](docs/version1.6.0/main.md#report-visualization)
 
 # Table of contents
 

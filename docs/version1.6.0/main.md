@@ -176,7 +176,7 @@ In the following we will create a new python file to store our step definitions.
 12      pass
 ```
 
-Let's go through the code and explain how we have defined the step definitions. In line 2-3 we have imported the **paraworld** modules needed to define step definitions. We have created to functions called *callAPIendpointStep* and *validateStatusCodeStep* in line 7 and 11. These functions will do nothin as of now.
+Let's go through the code and explain how we have defined the step definitions. In line 2-3 we have imported the **paraworld** modules needed to define step definitions. We have created two functions called *callAPIendpointStep* and *validateStatusCodeStep* in line 7 and 11. These functions will do nothing as of now.
 
 In order to mark a function as a step definition we will be using a python decorator class [Step](api.md#class-step). Line 5 and 9 we have added the **@Step** decorator to mark our two functions as step definitions. The **Step** decorator also takes a single parameter named *pattern* where the value is a regular expression that will be used by the TaskRunner to match against the text steps.
 
@@ -185,6 +185,7 @@ As you can see the two functions both have the same number of arguments:
 - **logger** - an instance of class [TaskLogger](api.md#class-tasklogger). This object can be used to log information and will be shown in the console.
 - **world** - an instance of class [World](api.md#class-world). The **World** class is an immutable key/value store that can be shared across features, scenarios and steps. It encompasses all shared variables across the entire application. We will show its usage later on.
 - **match** - an instance of class [Match](https://docs.python.org/3/library/re.html#match-objects). This object holds the result of the matched regular expression and can for example be used to extract capturing groups from the regular expression. We will show its usage later on.
+- **context** - an instance of class [ScenarioScope](api.md#class-scenarioscope). This objects can be used to store and retrieve custom data available throughout the current scenario only.
 
 So now that we have implemented the step definition let's make sure our test knows about the definition and re-run the feature file.
 

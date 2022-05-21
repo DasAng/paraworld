@@ -9,9 +9,9 @@ The framework supports the following distinct features:
 - [Run scenarios in parallel](docs/version1.6.0/main.md#parallel-scenarios)
 - [Run steps concurrently](docs/version1.6.0/main.md#concurrent-steps)
 - [Apply ordering and dependency for scenarios](docs/version1.6.0/main.md#dependency)
-- [Timeline visualization](docs/version1.6.0/main.md#timeline-visualization)
-- [Dependency visualization](docs/version1.6.0/main.md#dependency-graph)
-- [Report visualization](docs/version1.6.0/main.md#report-visualization)
+- [Timeline visualization](docs/version1.6.0/timeline-visualization.md#timeline-visualization)
+- [Dependency visualization](docs/version1.6.0/dependency-graph.md#dependency-graph)
+- [Report visualization](docs/version1.6.0/report-visualization.md#report-visualization)
 
 # Table of contents
 

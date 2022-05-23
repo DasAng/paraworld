@@ -84,7 +84,7 @@ export default function Scenario(props: {scenario: any}): JSX.Element {
                         </TableHead>
                     </Table>
                     {scenario.error?
-                    <pre>
+                    <pre style={{whiteSpace: 'pre-wrap'}}>
                     <code className={classes.scenarioError}>
                         {scenario.error}
                     </code>

@@ -116,7 +116,7 @@ export default function Step(props: {step: any}): JSX.Element {
     const renderError = (error: string) => {
         if (error) {
             return (
-                <pre>
+                <pre style={{whiteSpace: "pre-wrap"}}>
                     <code className={classes.stepError}>
                         {error}
                     </code>

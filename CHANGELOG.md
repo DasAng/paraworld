@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.6.2] - 2022-05-23
+
+### Fixed
+
+- Scenario error message now displays line wrapping correctly in the report
+- Step error message now displays line wrapping correctly in the report
+- Fixed latest report
+
 ## [1.6.1] - 2022-05-23
 
 ### Fixed
